@@ -1,12 +1,5 @@
 #!/usr/bin/env python
 
-# Catch errors
-# Informative errors
-# Basic logging
-# Error logging
-# Detailed logging
-# Split out POM-related functions
-
 import urllib2, re, pageOpener, MySQLdb
 
 opener = None
@@ -21,9 +14,12 @@ def crawl(uri):
 	if pomExists(folder):
 		pom = getPom(uri)
 		processPom(pom)
-	subFolders = getSubFolders(uri)
-	for subFolder in subFolders:
-		crawl(subFolder)
+	try:
+		subFolders = getSubFolders(uri)
+		for subFolder in subFolders:
+			crawl(subFolder)
+	except:
+		pass
 
 def pomExists(folder):
         for line in folder:
@@ -38,7 +34,13 @@ def getPom(uri):
 blacklist = ["../", "./", "LiveStats/", "src/", "branches/", "tags/" ]
 
 def getSubFolders(uri):
-	folder = opener.open(uri)
+	try:
+		folder = opener.open(uri)
+	except urllib2.URLError, e:
+		sys.stderr.write('URLError occured using uri ' + uri)
+		sys.stderr.write(error.strerror)
+		print 'URLError occured when retrieving ' + uri + ' , see stderr for details.'
+		raise
 	subDirectories = []
         for line in folder:
                 foundSubdirectories = re.search("href=\".+/\">", line)
