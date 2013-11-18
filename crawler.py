@@ -13,7 +13,7 @@ def crawl(uri):
 	folder = opener.open(uri)
 	if pomExists(folder):
 		pom = getPom(uri)
-		processPom(pom)
+		processPom(pom, uri)
 	try:
 		subFolders = getSubFolders(uri)
 		for subFolder in subFolders:
@@ -55,12 +55,13 @@ def getSubFolders(uri):
         return subDirectories
 
 # VERSIONING
-def processPom(pom):
+def processPom(pom, uri):
 	# Ordering matters! Partial parse restarts from the same point?
 	thisGroup = getValue("groupId", pom)
 	thisArtifact = getValue("artifactId",pom)
 	thisDependent = thisGroup + "." + thisArtifact
-        dependencyNodes = pullDependencies(pom)
+        outputDependentLocation(uri, thisDependent)
+	dependencyNodes = pullDependencies(pom)
         # Need to grab parent POM too!
 	for dependency in dependencyNodes:
                 dependencyArtifact = getValue("artifactId", dependency)
@@ -75,6 +76,14 @@ def outputDependency(dependent, dependency):
 	cursor.execute("INSERT INTO dependencies ( dependent , dependency ) VALUES (%s, %s)", (dependent, dependency))
 	db.commit()
 	db.close()
+
+def outputDependentLocation(pomUri, dependent):
+	db = MySQLdb.connect(host="localhost", user="root", passwd="", db="dependotron")
+	cursor = db.cursor()
+	cursor.execute("INSERT INTO dependents ( dependent , uri ) VALUES (%s, %s)", (dependent, pomUri))
+	db.commit()
+	db.close()
+	
 
 def pullDependencies(pom):
         dependencies = []
