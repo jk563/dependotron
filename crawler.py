@@ -60,7 +60,7 @@ def processPom(pom, uri):
 	thisGroup = getValue("groupId", pom)
 	thisArtifact = getValue("artifactId",pom)
 	thisDependent = thisGroup + "." + thisArtifact
-        outputDependentLocation(uri, thisDependent)
+        outputDependentLocation(uri + 'pom.xml', thisDependent)
 	dependencyNodes = pullDependencies(pom)
         # Need to grab parent POM too!
 	for dependency in dependencyNodes:
@@ -84,7 +84,6 @@ def outputDependentLocation(pomUri, dependent):
 	db.commit()
 	db.close()
 	
-
 def pullDependencies(pom):
         dependencies = []
         inDep = 0
