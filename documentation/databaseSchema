@@ -1,2 +1,32 @@
-dependantName | dependantVersion | dependencyName | dependencyVersion | directDependency
------------------------------------------------------------------------------------------
+artifacts
+CREATE TABLE `artifacts` (
+  `artifact_id` int(11) NOT NULL AUTO_INCREMENT,
+  `artifact_name` varchar(255) NOT NULL,
+  `artifact_version` varchar(31) NOT NULL,
+  PRIMARY KEY (`artifact_id`)
+);
++------------------+--------------+------+-----+---------+----------------+
+| Field            | Type         | Null | Key | Default | Extra          |
++------------------+--------------+------+-----+---------+----------------+
+| artifact_id      | int(11)      | NO   | PRI | NULL    | auto_increment |
+| artifact_name    | varchar(255) | NO   |     | NULL    |                |
+| artifact_version | varchar(31)  | NO   |     | NULL    |                |
++------------------+--------------+------+-----+---------+----------------+
+
+dependencies
+CREATE TABLE `dependencies` (
+  `parent_id` int(11) NOT NULL,
+  `descendant_id` int(11) NOT NULL,
+  `direct_dependency` tinyint(1) NOT NULL,
+  KEY `parent_id` (`parent_id`),
+  KEY `descendant_id` (`descendant_id`),
+  CONSTRAINT `dependencies_ibfk_1` FOREIGN KEY (`parent_id`) REFERENCES `artifacts` (`artifact_id`),
+  CONSTRAINT `dependencies_ibfk_2` FOREIGN KEY (`descendant_id`) REFERENCES `artifacts` (`artifact_id`)
+)
++-------------------+------------+------+-----+---------+-------+
+| Field             | Type       | Null | Key | Default | Extra |
++-------------------+------------+------+-----+---------+-------+
+| parent_id         | int(11)    | NO   | MUL | NULL    |       |
+| descendant_id     | int(11)    | NO   | MUL | NULL    |       |
+| direct_dependency | tinyint(1) | NO   |     | NULL    |       |
++-------------------+------------+------+-----+---------+-------+
