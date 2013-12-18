@@ -7,13 +7,16 @@ Does not depend on!
 """
 import unittest
 import tempfile
-from subprocess import call
+import os
+import pprint
 
 
 class ArtifactDependencyInfo:
     """
     Simple wrapper around the following directory.
-    ((name, version), [(name, version, direct), ...)])
+    from ((name, version), [(name, version, direct), ...)])
+        artifactInfo is a tuple: (name, version)
+        dependencies is a list: [(name1, version1, directFlag), ..., (nameN, versionN, directFlagN)]
     """
     def __init__(self, artifactInfo, dependencies):
         self.artifactInfo = artifactInfo
@@ -43,9 +46,16 @@ class PomAnalyser:
 
     def _do_some_maven_magic(self, pomTemporaryPath):
         print ">>> _do_some_maven_magic called with", pomTemporaryPath
-        call(["ls", "-l"])
-
-
+        # call(["ls", "-l"])
+        # foo = os.popen("ls -l")
+        currentDir = os.getcwd()
+        os.chdir(os.path.dirname(pomTemporaryPath))
+        foo = os.popen("mvn dependency:tree")
+        # fooValue = foo.close()
+        # print "!!!!!a", fooValue
+        print foo
+        pprint.pprint(foo.readlines())
+        os.chdir(currentDir)
 
 
 # If run as a program then run unit tests
