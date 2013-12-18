@@ -1,4 +1,5 @@
 import schemaGenerator, MySQLdb
+import pomanalyser
 
 class Database:
     def __init__(self):
@@ -16,19 +17,72 @@ class Database:
         generator.generateSchema(self.host, self.user, self.password, self.database)
 
 
-    def add(self, dependencyEntry):
+    def add(self, artifactDependencyInfo):
         """
         Add new information to the database. [dependencyEntry] might be a tuple of:
         (dependencyName, dependencyVersion, dependentName, dependentVersion)
         """
-        # dependotronConnection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
-        # dependotronCursor = dependotronConnection.cursor()
-        # addDependencySQL = ''
+        self.addArtifact(artifactDependencyInfo.artifactInfo)
+        for descendant in artifactDependencyInfo.dependencies:
+            self.addDescendant(artifactDependencyInfo.artifactInfo,descendant)
 
     def addArtifact(self, artifactTuple):
         artifactName = artifactTuple[0]
         artifactVersion = artifactTuple[1]
         dependotronConnection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
         dependotronCursor = dependotronConnection.cursor()
-        addDependencySQL = "INSERT INTO artifacts (artifact_name,artifact_version) VALUES ('" + artifactName + "','" + artifactVersion + "');"
-        dependotronCursor.execute(dependotronCursor)
+        addArtifactIdSQL = "INSERT INTO artifacts (artifact_name,artifact_version) VALUES ('" + artifactName + "','" + artifactVersion + "');"
+        try:
+            dependotronCursor.execute(addArtifactIdSQL)
+            dependotronConnection.commit()
+        except:
+            pass
+
+    def addDescendant(self, artifactTuple, descendantTuple):
+        print descendantTuple
+        try:
+            self.addArtifact(descendantTuple)
+        except:
+            pass
+        parentId = str(self.getArtifactId(artifactTuple))
+        descendantId = str(self.getArtifactId(descendantTuple))
+        directDescendant = str(descendantTuple[2] | 0)
+        dependotronConnection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
+        dependotronCursor = dependotronConnection.cursor()
+        addDependencySQL = "INSERT INTO dependencies (parent_id,descendant_id,direct_dependency) VALUES ('" + parentId + "','" + descendantId + "','" + directDescendant + "');"
+        print addDependencySQL
+        try:
+            dependotronCursor.execute(addDependencySQL)
+            dependotronConnection.commit()
+        except:
+            pass
+
+    def getArtifactId(self,artifactTuple):
+        artifactName = artifactTuple[0]
+        artifactVersion = artifactTuple[1]
+        dependotronConnection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
+        dependotronCursor = dependotronConnection.cursor()
+        getArtifactIdSQL = "SELECT artifact_id FROM artifacts WHERE (artifact_name='" + artifactName + "' AND artifact_version='" + artifactVersion + "')"
+        dependotronCursor.execute(getArtifactIdSQL)
+        artifactId =  dependotronCursor.fetchall()[0][0]
+        return artifactId
+
+
+if __name__ == '__main__':
+    gen = schemaGenerator.SchemaGenerator()
+
+    mySQLConnection = MySQLdb.connect(host='localhost', user='root', passwd='')
+    mySqlCursor = mySQLConnection.cursor()
+    deleteDependotronSQL = "DROP DATABASE dependotron;"
+    try:
+        mySqlCursor.execute(deleteDependotronSQL)
+    except:
+        pass
+
+    gen.generateSchema('localhost','root','','dependotron')
+    dependotronConnection = MySQLdb.connect(host='localhost', user='root', passwd='', db='dependotron')
+    dependotronCursor = dependotronConnection.cursor()
+
+    db = Database()
+    artifactDependencyInfo = pomanalyser.ArtifactDependencyInfo(('root','rootverstion'),[('dep1','ver1', 1), ('dep2','ver1', 1), ('dep1','ver2', 0), ('dep1','ver2', 1), ('dep3','ver2', 1)])
+    db.add(artifactDependencyInfo)
