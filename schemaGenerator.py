@@ -4,7 +4,7 @@ import MySQLdb
 class SchemaGenerator:
     def generateSchema(self, host,user,password,database):
         mySQLConnection = MySQLdb.connect(host=host, user=user, passwd=password)
-        self.createDependotronDatabaseIfExists(mySQLConnection)
+        self.createDependotronDatabaseIfExists(mySQLConnection, database)
         dependotronConnection = MySQLdb.connect(host=host, user=user, passwd=password, db=database)
         self.dependotronCursor = dependotronConnection.cursor()
         self.createTable()
@@ -12,10 +12,10 @@ class SchemaGenerator:
     def setMySQLConnection(self,host,user,password):
         self.mySQLConnection = MySQLdb.connect(host=host, user=user, passwd=password)
 
-    def createDependotronDatabaseIfExists(self, mySQLConnection):
+    def createDependotronDatabaseIfExists(self, mySQLConnection,database):
         if(mySQLConnection):
             mySqlCursor = mySQLConnection.cursor()
-            createDependotronSQL = "CREATE DATABASE IF NOT EXISTS dependotron;"
+            createDependotronSQL = "CREATE DATABASE IF NOT EXISTS " + database + ";"
             mySqlCursor.execute(createDependotronSQL)
         else:
             raise Exception("No MySQL connection set.")

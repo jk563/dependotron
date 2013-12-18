@@ -4,29 +4,12 @@ Tool for finding dependencies of maven artifacts, using Python, SVN, Maven, MySQ
 """
 import argparse
 from pomanalyser import PomAnalyser
+import database
 
 __version__ = "0.0"
 
 
 # Placeholder objects
-class Database:
-    def __init__(self):
-        pass
-
-    def configure(self):
-        """
-        Tests if the database is there, builds it if not. Maybe throws exception if wrong schema?
-        Alternatively this could be done in the constructor
-        """
-        pass
-
-    def add(self, dependencyEntry):
-        """
-        Add new information to the database. [dependencyEntry] might be a tuple of:
-        (dependencyName, dependencyVersion, dependentName, dependentVersion)
-        """
-        pass
-
 class PomCrawler:
     def __init__(self, pomAnalyser, database):
         pass
@@ -49,7 +32,7 @@ if __name__ == "__main__":
     if parser.parse_args().svnRoot:
         print "Starting crawling from: {0}".format(parser.parse_args().svnRoot)
 
-    database = Database()
+    database = database.Database()
     database.configure()
 
     pomAnalyser = PomAnalyser()
