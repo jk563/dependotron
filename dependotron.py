@@ -3,6 +3,7 @@ Depend-o-tron
 Tool for finding dependencies of maven artifacts, using Python, SVN, Maven, MySQL, graphviz...
 """
 import argparse
+from pomanalyser import PomAnalyser
 
 __version__ = "0.0"
 
@@ -37,17 +38,6 @@ class PomCrawler:
         """
         pass
 
-class PomAnalyser:
-    def __init__(self):
-        pass
-
-    def analyse(self, pom):
-        """
-        Analyses the contents of [pom] and returns a list of tuples of depenencies.
-        Uses maven to do the analysis.
-        Q: can it take the contents of a POM or does it need to fetch it?
-        """
-        pass
 
 
 # If run as a program then handle parameters and run
