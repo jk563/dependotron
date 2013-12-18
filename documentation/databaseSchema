@@ -3,4 +3,4 @@ parentid | descendantid | directDependency
 
 
 artifacts
-id | artifactid | artifactversion
+artifact_id | artifact_name | artifact_version
