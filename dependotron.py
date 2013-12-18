@@ -22,6 +22,13 @@ class PomCrawler:
         pass
 
 
+class PomProcessor:
+    def __init__(self, pomFetcher, pomAnalyser, database):
+        pass
+
+    def go(self):
+        pass
+
 
 # If run as a program then handle parameters and run
 if __name__ == "__main__":
@@ -37,5 +44,8 @@ if __name__ == "__main__":
 
     pomAnalyser = PomAnalyser()
 
-    pomCrawler = PomCrawler(pomAnalyser, database)
-    pomCrawler.crawl(parser.parse_args().svnRoot)
+    pomFetcher = PomFetcherFolder()
+    # pomFetcher = PomFetcherSvn()
+
+    pomProcessor = PomProcessor(pomFetcher, pomAnalyser, database)
+    pomProcessor.go()

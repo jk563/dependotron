@@ -18,10 +18,12 @@ class PomAnalyser:
         Uses maven to do the analysis.
         Q: can it take the contents of a POM or does it need to fetch it?
         """
-        print "pomanalyser: hi! {0}".format(use_direct_only)
+        print "pomanalyser: hi! %d" % use_direct_only
 
 
 # If run as a program then run unit tests
 if __name__ == "__main__":
+    pomFile = open("test/resources/simple_pom/pom.xml")
+    pomContents = pomFile.readlines()
     analyser = PomAnalyser()
-    analyser.analyse()
+    analyser.analyse(pomContents)
