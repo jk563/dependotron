@@ -7,7 +7,7 @@ class SchemaGenerator:
         self.createDependotronDatabaseIfExists(mySQLConnection, database)
         dependotronConnection = MySQLdb.connect(host=host, user=user, passwd=password, db=database)
         self.dependotronCursor = dependotronConnection.cursor()
-        self.createTable()
+        self.createTables()
 
     def setMySQLConnection(self,host,user,password):
         self.mySQLConnection = MySQLdb.connect(host=host, user=user, passwd=password)
@@ -20,13 +20,21 @@ class SchemaGenerator:
         else:
             raise Exception("No MySQL connection set.")
 
-    def createTable(self):
+    def createTables(self):
         if(self.dependotronCursor):
-            createDependotronSQL = "CREATE TABLE IF NOT EXISTS dependencies (dependantName VARCHAR(255), dependantVersion VARCHAR(15), dependencyName VARCHAR(255), dependencyVersion VARCHAR(15), directDependency BOOLEAN);"
-            self.dependotronCursor.execute(createDependotronSQL)
+            artifactsSQL = "CREATE TABLE IF NOT EXISTS artifacts (id INT NOT NULL AUTO_INCREMENT, artifact_name VARCHAR(255) NOT NULL, artifact_version VARCHAR(31) NOT NULL, PRIMARY KEY (id));"
+            dependenciesSQL = "CREATE TABLE IF NOT EXISTS dependencies (parent_id INT NOT NULL, descendant_id INT NOT NULL, direct_dependency BOOLEAN NOT NULL, FOREIGN KEY (parent_id) REFERENCES artifacts (id),FOREIGN KEY (descendant_id) REFERENCES artifacts (id));"
+            self.dependotronCursor.execute(artifactsSQL)
+            self.dependotronCursor.execute(dependenciesSQL)
         else:
             raise Exception("No dependotron connection set.")
 
 if __name__ == '__main__':
     gen = SchemaGenerator()
+
+    mySQLConnection = MySQLdb.connect(host='localhost', user='root', passwd='')
+    mySqlCursor = mySQLConnection.cursor()
+    deleteDependotronSQL = "DROP DATABASE dependotron;"
+    mySqlCursor.execute(deleteDependotronSQL)
+
     gen.generateSchema('localhost','root','','dependotron')

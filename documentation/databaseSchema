@@ -1,2 +1,6 @@
-dependantName | dependantVersion | dependencyName | dependencyVersion | directDependency
------------------------------------------------------------------------------------------
+parentid | descendantid | directDependency
+-------------------------------------------
+
+
+artifacts
+id | artifactid | artifactversion
