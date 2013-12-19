@@ -119,36 +119,56 @@ class Database:
     def getDownstreamDependencies(self, artifactInfo):
         if self.doesArtifactExist(artifactInfo.name, artifactInfo.version) == False:
             return None
-        downstreamDependenciesConnection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
-        downstreamDependenciesCursor = downstreamDependenciesConnection.cursor()
         artifactId = self._getArtifactId(artifactInfo)
-        existsSQL = "SELECT artifact_name,artifact_version, direct_dependency FROM artifacts, dependencies WHERE (parent_id=%s AND artifact_id=descendant_id);" % \
+        downstreamSql = "SELECT artifact_name,artifact_version, direct_dependency FROM artifacts, dependencies WHERE (parent_id=%s AND artifact_id=descendant_id);" % \
                     (artifactId)
-        downstreamDependenciesCursor.execute(existsSQL)
-        artifacts = []
-        for artifact in downstreamDependenciesCursor.fetchall():
-            artifacts.append(artifactdependencyinfo.ArtifactInfo(artifact[0],artifact[1], artifact[2]))
-        downstreamDependenciesCursor.close()
-        downstreamDependenciesConnection.close()
-        return artifactdependencyinfo.ArtifactDependencyInfo(artifactInfo, artifacts)
+        dependencies = self._getFromDatabase(downstreamSql,self.MySQLResultsToListOfArtifactInfo())
+        return artifactdependencyinfo.ArtifactDependencyInfo(artifactInfo, dependencies)
     
     def getUpstreamDependencies(self, artifactInfo):
         if self.doesArtifactExist(artifactInfo.name, artifactInfo.version) == False:
             return None
-        upstreamDependenciesConnection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
-        upstreamDependenciesCursor = upstreamDependenciesConnection.cursor()
         artifactId = self._getArtifactId(artifactInfo)
-        existsSQL = "SELECT artifact_name,artifact_version, direct_dependency FROM artifacts, dependencies WHERE (descendant_id=%s AND artifact_id=parent_id);" % \
+        upstreamSql = "SELECT artifact_name,artifact_version, direct_dependency FROM artifacts, dependencies WHERE (descendant_id=%s AND artifact_id=parent_id);" % \
                     (artifactId)
-        upstreamDependenciesCursor.execute(existsSQL)
-        artifacts = []
-        for artifact in upstreamDependenciesCursor.fetchall():
-            artifacts.append(artifactdependencyinfo.ArtifactInfo(artifact[0],artifact[1], artifact[2]))
-        upstreamDependenciesCursor.close()
-        upstreamDependenciesConnection.close()
-        return artifactdependencyinfo.ArtifactDependencyInfo(artifactInfo, artifacts)
+        dependencies = self._getFromDatabase(upstreamSql, self.MySQLResultsToListOfArtifactInfo())
+        return artifactdependencyinfo.ArtifactDependencyInfo(artifactInfo, dependencies)
+
+    def _getFromDatabase(self, sql, formatter=None):
+        databaseConnection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
+        databaseCursor = databaseConnection.cursor()
+        databaseCursor.execute(sql)
+        sqlResult = databaseCursor.fetchall()
+        databaseCursor.close()
+        databaseConnection.close()
+        if formatter:
+            if formatter.format:
+                return formatter.format(sqlResult)
+            else:
+                raise FormatterException
+        return sqlResult
+
+    class MySQLResultsToListOfArtifactInfo:
+        def format(self, mysqlResults):
+            formatter = TupleToArtifactInfoFormatter()
+            result = []
+            for mysqlTuple in mysqlResults:
+                result.append(formatter.format(mysqlTuple))
+            return result
 
 
+class TupleToArtifactInfoFormatter:
+    def format(self,tupleToFormat):
+        if len(tuple) is 3:
+            return artifactdependencyinfo.ArtifactInfo(tupleToFormat[0],tupleToFormat[1], tupleToFormat[2])
+        elif len(tuple) is 2:
+            return artifactdependencyinfo.ArtifactInfo(tupleToFormat[0],tupleToFormat[1])
+        else:
+            raise FormatterException
+
+
+class FormatterException(Exception):
+    pass
 
 if __name__ == '__main__':
     gen = schemaGenerator.SchemaGenerator()
