@@ -36,12 +36,15 @@ class Database:
 
             # Make this bit a transaction
         try:
+            dependotronConnection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
+            dependotronCursor = dependotronConnection.cursor()
             for descendant in artifactDependencyInfo.dependencies:
-                self._addDescendant(artifactDependencyInfo.artifactInfo,descendant)
+                self._addDescendant(artifactDependencyInfo.artifactInfo,descendant,dependotronCursor)
+            dependotronConnection.commit()
+            dependotronCursor.close()
+            dependotronConnection.close()
         except:
-            pass
-
-
+            raise
 
     def _addArtifact(self, artifactInfo):
         dependotronConnection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
@@ -54,18 +57,15 @@ class Database:
         except:
             pass
 
-    def _addDescendant(self, artifactInfo, descendantInfo):
+    def _addDescendant(self, artifactInfo, descendantInfo, cur):
         parentId = self._getArtifactId(artifactInfo)
         descendantId = self._getArtifactId(descendantInfo)
-        dependotronConnection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
-        dependotronCursor = dependotronConnection.cursor()
         addDependencySQL = "INSERT INTO dependencies (parent_id,descendant_id,direct_dependency) VALUES ('%s','%s','%s');" % \
                             (parentId,descendantId,descendantInfo.directDependency)
         try:
-            dependotronCursor.execute(addDependencySQL)
-            dependotronConnection.commit()
+            cur.execute(addDependencySQL)
         except:
-            pass
+            raise
 
     def _getArtifactId(self, artifactInfo):
         dependotronConnection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
@@ -108,5 +108,5 @@ if __name__ == '__main__':
     dependotronCursor = dependotronConnection.cursor()
 
     db = Database()
-    artifactDependencyInfo = pomanalyser.ArtifactDependencyInfo(artifactdependencyinfo.ArtifactInfo('root','rootversion'),[artifactdependencyinfo.ArtifactInfo('dep1','ver1', 1), artifactdependencyinfo.ArtifactInfo('dep2','ver1', 1), artifactdependencyinfo.ArtifactInfo('dep1','ver2', 0), artifactdependencyinfo.ArtifactInfo('dep1','ver2', 1), artifactdependencyinfo.ArtifactInfo('dep3','ver2', 1)])
+    artifactDependencyInfo = pomanalyser.ArtifactDependencyInfo(artifactdependencyinfo.ArtifactInfo('root','rootversion'),[artifactdependencyinfo.ArtifactInfo('dep1','ver1', 1), artifactdependencyinfo.ArtifactInfo('dep2','ver1', 1), artifactdependencyinfo.ArtifactInfo('dep1','ver2', 1), artifactdependencyinfo.ArtifactInfo('dep3','ver2', 1)])
     db.add(artifactDependencyInfo)
