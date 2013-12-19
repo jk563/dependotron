@@ -8,7 +8,7 @@ class PomProcessor:
         self._database = database
 
     def process(self):
-        self._pom_fetcher.crawl()
+        self._pom_fetcher.fetch()
 
     def update(self, pom_content_string):
         pom_tree = ET.fromstring(pom_content_string)

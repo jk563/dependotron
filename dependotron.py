@@ -3,31 +3,37 @@ Depend-o-tron
 Tool for finding dependencies of maven artifacts, using Python, SVN, Maven, MySQL, graphviz...
 """
 import argparse
+from database import Database
+from pomProcessor import PomProcessor
 from pomanalyser import PomAnalyser
-import database
+from pomfetcherfolder import PomFetcherFolder
+from pomfoundsubject import PomFoundSubject
 
 __version__ = "0.0"
 
+class Main:
 
-# Placeholder objects
-class PomCrawler:
-    def __init__(self, pomAnalyser, database):
-        pass
-
-    def crawl(self, svnRoot):
-        """
-        Start crawling the SVN system from [svnRoot].
-        Uses [_pomAnalyser] to process each POM and writes the resulting information into [_database].
-        """
-        pass
-
-
-class PomProcessor:
-    def __init__(self, pomFetcher, pomAnalyser, database):
-        pass
+    def __init__(self, path):
+        self._starting_path = path
+        self._pom_processor
+        self._pom_found_subject
 
     def go(self):
-        pass
+        self._create_objects()
+        self._pom_found_subject.register_observer(self._pom_processor)
+        self._pom_processor.process()
+
+    def _create_objects(self):
+        self._pom_found_subject = PomFoundSubject()
+
+        pom_fetcher = PomFetcherFolder(self._starting_path, self.max_items, self._pom_found_subject)
+        # TODO switch pom_fetcher based on whether path is an svn or file path
+        #pom_fetcher = PomFetcherSvn(self._starting_path, self.max_items, self._pom_found_subject)
+
+        pom_analyser = PomAnalyser()
+        database = Database()
+
+        self._pom_processor = PomProcessor(pom_fetcher, pom_analyser, database)
 
 
 # If run as a program then handle parameters and run
@@ -39,13 +45,5 @@ if __name__ == "__main__":
     if parser.parse_args().svnRoot:
         print "Starting crawling from: {0}".format(parser.parse_args().svnRoot)
 
-    database = database.Database()
-    database.configure()
-
-    pomAnalyser = PomAnalyser()
-
-    pomFetcher = PomFetcherFolder()
-    # pomFetcher = PomFetcherSvn()
-
-    pomProcessor = PomProcessor(pomFetcher, pomAnalyser, database)
-    pomProcessor.go()
+    main = Main(parser.parse_args().svnRoot)
+    main.go()
