@@ -16,6 +16,8 @@ class PomFetcherFolder:
         return self._current_index < self.number_of_poms()
 
     def get_pom_contents(self):
+        if not self.has_next():
+            return None
         pom_filepath = self._pom_filepath_list[self._current_index]
         data = open(pom_filepath, "r").read()
         self._current_index += 1
