@@ -2,7 +2,7 @@
 Depend-o-tron
 Tool for finding dependencies of maven artifacts, using Python, SVN, Maven, MySQL, graphviz...
 """
-import argparse
+from optparse import OptionParser
 from database import Database
 from pomProcessor import PomProcessor
 from pomanalyser import PomAnalyser
@@ -15,8 +15,9 @@ class Main:
 
     def __init__(self, path):
         self._starting_path = path
-        self._pom_processor
-        self._pom_found_subject
+        self._max_items = 10
+        self._pom_processor = None
+        self._pom_found_subject = None
 
     def go(self):
         self._create_objects()
@@ -26,9 +27,9 @@ class Main:
     def _create_objects(self):
         self._pom_found_subject = PomFoundSubject()
 
-        pom_fetcher = PomFetcherFolder(self._starting_path, self.max_items, self._pom_found_subject)
+        pom_fetcher = PomFetcherFolder(self._starting_path, self._max_items, self._pom_found_subject)
         # TODO switch pom_fetcher based on whether path is an svn or file path
-        #pom_fetcher = PomFetcherSvn(self._starting_path, self.max_items, self._pom_found_subject)
+        #pom_fetcher = PomFetcherSvn(self._starting_path, self._max_items, self._pom_found_subject)
 
         pom_analyser = PomAnalyser()
         database = Database()
@@ -38,12 +39,21 @@ class Main:
 
 # If run as a program then handle parameters and run
 if __name__ == "__main__":
-    print "This is Depend-O-Tron (version {0})".format(__version__)
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--svnRoot",
+    print "This is Depend-O-Tron (version " + __version__ + ")"
+    parser = OptionParser()
+    parser.add_option("--svnRoot",
                         help = "The path to the initial SVN URL from which to start mapping dependencies.")
-    if parser.parse_args().svnRoot:
-        print "Starting crawling from: {0}".format(parser.parse_args().svnRoot)
 
-    main = Main(parser.parse_args().svnRoot)
-    main.go()
+    main = None
+
+    (options, args) = parser.parse_args()
+    svn_root = options.svnRoot
+
+    if svn_root:
+        print "Starting crawling from: " + svn_root
+        main = Main(svn_root)
+
+    if (main):
+        main.go()
+    else:
+        print "No svn or folder path specified. Sleeping zzzzzzzzzzzzzzz"
