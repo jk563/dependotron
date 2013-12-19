@@ -93,17 +93,16 @@ class Database:
         pomAnalysisConnection.close()
         return pomExists
 
-    def doesArtifactExist(self, artifactName, artifactVersion):
+    def doesArtifactExist(self, artifactName, artifactVersion=None):
         artifactExistsConnection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
         artifactExistsCursor = artifactExistsConnection.cursor()
-        if not artifactVersion:
-            existsSQL = "SELECT * FROM artifacts WHERE (artifact_name='%s' AND artifact_version='%s')" % \
+        if artifactVersion == None:
+            existsSQL = "SELECT * FROM artifacts WHERE (artifact_name='%s')" % \
                         (artifactName)
         else:
             existsSQL = "SELECT * FROM artifacts WHERE (artifact_name='%s' AND artifact_version='%s')" % \
                         (artifactName, artifactVersion)
         artifactExistsCursor.execute(existsSQL)
-        print artifactExistsCursor.rowcount
         if artifactExistsCursor.rowcount == 0:
             artifactExists = False
         else:
@@ -137,3 +136,5 @@ if __name__ == '__main__':
          artifactdependencyinfo.ArtifactInfo('dep3', 'ver2', 1)])
 
     db.add(artifactDependencyInfo)
+
+    print db.doesArtifactExist('dep1','ver2')
