@@ -25,7 +25,10 @@ class ArtifactDependencyInfo:
 
 class PomAnalyser:
     def __init__(self):
-        pass
+        try:
+            os.mkdir(".temp")
+        except OSError:
+            pass
 
     def analyse(self, pomContents, use_direct_only = True):
         """
@@ -33,29 +36,36 @@ class PomAnalyser:
         Uses maven to do the analysis.
         Returns an ArtifactDependencyInfo
         """
-        print "pomanalyser: hi! %d" % use_direct_only
-        pomTemporaryPath = self._save_pom_contents_to_temporary_path(pomContents)
-        self._do_some_maven_magic(pomTemporaryPath)
+        pom_temporary_path_and_file_name = self._save_pom_contents_to_temporary_path(pomContents)
+        tree_file = self._create_dependencies_text_file(pom_temporary_path_and_file_name, "tree.txt")
+        self._make_artifactdependency_info_from(tree_file)
         return ArtifactDependencyInfo("", [])
 
-    def _save_pom_contents_to_temporary_path(self, pomContents):
-        temporaryPathAndFileName = tempfile.NamedTemporaryFile().name
-        tempFile = open(temporaryPathAndFileName, "w")
-        tempFile.writelines(pomContents)
-        return temporaryPathAndFileName
+    def _maven_command(self):
+        return "mvn dependency:tree -DoutputFile=tree.txt"
 
-    def _do_some_maven_magic(self, pomTemporaryPath):
-        print ">>> _do_some_maven_magic called with", pomTemporaryPath
-        # call(["ls", "-l"])
-        # foo = os.popen("ls -l")
-        currentDir = os.getcwd()
-        os.chdir(os.path.dirname(pomTemporaryPath))
-        foo = os.popen("mvn dependency:tree")
-        # fooValue = foo.close()
-        # print "!!!!!a", fooValue
-        print foo
-        pprint.pprint(foo.readlines())
-        os.chdir(currentDir)
+    def _save_pom_contents_to_temporary_path(self, pomContents):
+        temp_file = open(".temp/pom.xml", "w")
+        temp_file.writelines(pomContents)
+        return ".temp/pom.xml"
+
+    def _create_dependencies_text_file(self, pom_temporary_path_and_file_name, output_file_name):
+        current_dir = os.getcwd()
+        temporary_dir =os.path.dirname(pom_temporary_path_and_file_name)
+        os.chdir(temporary_dir)
+        print "Running maven on POM..."
+        os.popen(self._maven_command())
+        os.chdir(current_dir)
+        print "*****", temporary_dir
+        tree_file = open(os.path.join(temporary_dir, output_file_name))
+        return tree_file
+
+    def _make_artifactdependency_info_from(self, tree_file):
+        artifact_info = self._parse_tree_line(tree_file.readline())
+        print "Maven dependencies for", artifact_info[0], "(version", artifact_info[1], ") analysed"
+
+    def _parse_tree_line(self, tree_line):
+        return ("redbutton_super_library", "1.2.3")
 
 
 # If run as a program then run unit tests
