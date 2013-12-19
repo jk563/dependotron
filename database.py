@@ -50,7 +50,7 @@ class Database:
         dependotronConnection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
         dependotronCursor = dependotronConnection.cursor()
         addArtifactIdSQL = "INSERT INTO artifacts (artifact_name,artifact_version) VALUES ('%s','%s');" % \
-                           (artifactInfo.name, artifactInfo.version)
+                           (artifactInfo.artifactName,artifactInfo.artifactVersion)
         try:
             dependotronCursor.execute(addArtifactIdSQL)
             dependotronConnection.commit()
@@ -61,7 +61,7 @@ class Database:
         parentId = self._getArtifactId(artifactInfo)
         descendantId = self._getArtifactId(descendantInfo)
         addDependencySQL = "INSERT INTO dependencies (parent_id,descendant_id,direct_dependency) VALUES ('%s','%s','%s');" % \
-                            (parentId,descendantId,descendantInfo.direct_dependency)
+                            (parentId,descendantId,descendantInfo.directDependency)
         try:
             cur.execute(addDependencySQL)
         except:
@@ -71,7 +71,7 @@ class Database:
         dependotronConnection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
         dependotronCursor = dependotronConnection.cursor()
         getArtifactIdSQL = "SELECT artifact_id FROM artifacts WHERE (artifact_name='%s' AND artifact_version='%s')" % \
-                            (artifactInfo.name, artifactInfo.version)
+                            (artifactInfo.artifactName, artifactInfo.artifactVersion)
         dependotronCursor.execute(getArtifactIdSQL)
         artifactId =  dependotronCursor.fetchall()[0][0]
         return artifactId
