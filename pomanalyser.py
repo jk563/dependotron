@@ -7,6 +7,8 @@ Does not depend on!
 """
 import unittest
 import os
+import re
+
 from artifactdependencyinfo import ArtifactDependencyInfo
 from artifactdependencyinfo import ArtifactInfo
 
@@ -61,7 +63,8 @@ class PomAnalyser:
         (indent_string, package_string) = self._split_tree_line_into_indent_and_package(tree_line)
         line_elements = package_string.split(":")
         depth = indent_string.count("+") + indent_string.count("|")
-        return (ArtifactInfo(":".join(line_elements[0:2]), line_elements[3]), depth)
+        artifact_info_and_depth = (ArtifactInfo(":".join(line_elements[0:2]), line_elements[3]), depth)
+        return artifact_info_and_depth
 
     def _get_dependencies_from(self, tree_file):
         dependencies = []
@@ -71,7 +74,8 @@ class PomAnalyser:
         return dependencies
 
     def _split_tree_line_into_indent_and_package(self, tree_line):
-        last_space = tree_line.rfind(" ")
+        first_word_char = re.search('\w', tree_line).start()
+        last_space = first_word_char - 1
         indent_string = tree_line[:last_space].strip()
         package_string = tree_line[last_space + 1:].strip()
         return (indent_string, package_string)
@@ -101,6 +105,11 @@ class PomAnalyserTest(unittest.TestCase):
         (artifact_info, level) = self.pomAnalyser._parse_tree_line("|  |  +- columba:ristretto-smtp:jar:1.0:compile")
         self.assertEqual(artifact_info, ArtifactInfo("columba:ristretto-smtp", "1.0"))
         self.assertEqual(level, 3)
+
+    def test_given_dependency_line_with_comment_when_parse_tree_line_then_correct_name_and_version_and_level_are_returned(self):
+        (artifact_info, level) = self.pomAnalyser._parse_tree_line("+- org.springframework:spring-test:jar:3.1.1.RELEASE:test (scope not updated to compile)")
+        self.assertEqual(artifact_info, ArtifactInfo("org.springframework:spring-test", "3.1.1.RELEASE"))
+        self.assertEqual(level, 1)
 
 
 def do_integration_tests():
