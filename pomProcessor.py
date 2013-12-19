@@ -1,4 +1,7 @@
-import xml.etree.ElementTree as ET
+try :
+    import elementtree.ElementTree as ET
+except ImportError:
+    import xml.etree.ElementTree as ET
 from artifactdependencyinfo import ArtifactInfo
 
 class PomProcessor:
