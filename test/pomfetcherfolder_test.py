@@ -24,7 +24,7 @@ class PomFetcherFolderTest(unittest.TestCase):
     def test_get_pom_contents_returns_some_content(self):
         contents = self._pom_fetcher_folder.get_pom_contents()
         #print contents
-        self.assertTrue(contents)
+        self.assertTrue(contents.startswith("<?xml version=\"1.0\"?>\n<project xmlns=\"http://maven.apache.org/POM/"))
 
     def test_repeated_calls_to_get_pom_contents_are_safe(self):
         contents = self._pom_fetcher_folder.get_pom_contents()
