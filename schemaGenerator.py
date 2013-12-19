@@ -20,7 +20,7 @@ class SchemaGenerator:
     def createTables(self):
         if(self.dependotronCursor):
             artifactsSQL = "CREATE TABLE IF NOT EXISTS artifacts (artifact_id INT NOT NULL AUTO_INCREMENT, artifact_name VARCHAR(255) NOT NULL, artifact_version VARCHAR(31) NOT NULL, PRIMARY KEY (artifact_id), UNIQUE KEY (artifact_name,artifact_version));"
-            dependenciesSQL = "CREATE TABLE IF NOT EXISTS dependencies (parent_id INT NOT NULL, descendant_id INT NOT NULL, direct_dependency BOOLEAN NOT NULL, FOREIGN KEY (parent_id) REFERENCES artifacts (artifact_id),FOREIGN KEY (descendant_id) REFERENCES artifacts (artifact_id));"
+            dependenciesSQL = "CREATE TABLE IF NOT EXISTS dependencies (parent_id INT NOT NULL, descendant_id INT NOT NULL, direct_dependency BOOLEAN NOT NULL, FOREIGN KEY (parent_id) REFERENCES artifacts (artifact_id),FOREIGN KEY (descendant_id) REFERENCES artifacts (artifact_id),UNIQUE KEY (parent_id,descendant_id));"
             self.dependotronCursor.execute(artifactsSQL)
             self.dependotronCursor.execute(dependenciesSQL)
         else:
