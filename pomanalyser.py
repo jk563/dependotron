@@ -7,7 +7,6 @@ Does not depend on!
 """
 import unittest
 import os
-import pprint
 from artifactdependencyinfo import ArtifactDependencyInfo
 from artifactdependencyinfo import ArtifactInfo
 
