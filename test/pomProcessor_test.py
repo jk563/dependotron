@@ -6,20 +6,18 @@ class PomProcessorTest(unittest.TestCase):
 
     def setUp(self):
         self._pom_content = open('resources/xml/basicPom.xml', "r").read()
-        self._pom_fetcher = None
         self._pom_analyser = None
         self._database = None
 
     def tearDown(self):
         self._pom_content = None
-        self._pom_fetcher = None
         self._pom_analyser = None
         self._database = None
         self.pomProcessor = None
 
     def test_database_asked_if_correct_artifact_analysis_exists(self):
         self._database = TestDatabaseAnalysisExists()
-        self._pom_processor = PomProcessor(self._pom_fetcher, self._pom_analyser, self._database)
+        self._pom_processor = PomProcessor(self._pom_analyser, self._database)
 
         self._pom_processor.update(self._pom_content)
         self.assertEqual("pomGroupId.pomArtifactId", self._database.get_artifact_info().name)
@@ -29,7 +27,7 @@ class PomProcessorTest(unittest.TestCase):
         dependency_info = "something"
         self._pom_analyser = TestPomAnalyser(dependency_info)
         self._database = TestDatabaseAnalysisNotExists()
-        self._pom_processor = PomProcessor(self._pom_fetcher, self._pom_analyser, self._database)
+        self._pom_processor = PomProcessor(self._pom_analyser, self._database)
 
         self._pom_processor.update(self._pom_content)
         self.assertEqual(dependency_info, self._database.get_artifact_dependency_info())

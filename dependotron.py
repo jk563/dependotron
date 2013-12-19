@@ -19,25 +19,26 @@ class Main:
         self._max_items = 10
         self._pom_processor = None
         self._pom_found_subject = None
+        self._pom_fetcher = None
         self._svn_or_folder = svn_or_folder
 
     def go(self):
         self._create_objects()
         self._pom_found_subject.register_observer(self._pom_processor)
-        self._pom_processor.process()
+        self._pom_fetcher.fetch()
 
     def _create_objects(self):
         self._pom_found_subject = PomFoundSubject()
 
         if self._svn_or_folder == "FOLDER":
-            pom_fetcher = PomFetcherFolder(self._starting_path, self._max_items, self._pom_found_subject)
+            self._pom_fetcher = PomFetcherFolder(self._starting_path, self._max_items, self._pom_found_subject)
         elif self._svn_or_folder == "SVN":
-            pom_fetcher = PomFetcherSvn(self._starting_path, self._max_items, self._pom_found_subject)
+            self._pom_fetcher = PomFetcherSvn(self._starting_path, self._max_items, self._pom_found_subject)
 
         pom_analyser = PomAnalyser()
         database = Database()
 
-        self._pom_processor = PomProcessor(pom_fetcher, pom_analyser, database)
+        self._pom_processor = PomProcessor(pom_analyser, database)
 
 
 # If run as a program then handle parameters and run

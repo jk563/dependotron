@@ -5,13 +5,9 @@ except ImportError:
 from artifactdependencyinfo import ArtifactInfo
 
 class PomProcessor:
-    def __init__(self, pom_fetcher, pom_analyser, database):
-        self._pom_fetcher = pom_fetcher
+    def __init__(self, pom_analyser, database):
         self._pom_analyser = pom_analyser
         self._database = database
-
-    def process(self):
-        self._pom_fetcher.fetch()
 
     def update(self, pom_content_string):
         pom_tree = ET.fromstring(pom_content_string)
