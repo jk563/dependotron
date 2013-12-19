@@ -26,7 +26,7 @@ class Database:
         for descendant in artifactDependencyInfo.dependencies:
             self.addDescendant(artifactDependencyInfo.artifactInfo,descendant)
 
-    def addArtifact(self, artifactTuple):
+    def _addArtifact(self, artifactTuple):
         artifactName = artifactTuple[0]
         artifactVersion = artifactTuple[1]
         dependotronConnection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
@@ -38,7 +38,7 @@ class Database:
         except:
             pass
 
-    def addDescendant(self, artifactTuple, descendantTuple):
+    def _addDescendant(self, artifactTuple, descendantTuple):
         print descendantTuple
         try:
             self.addArtifact(descendantTuple)
@@ -57,7 +57,7 @@ class Database:
         except:
             pass
 
-    def getArtifactId(self,artifactTuple):
+    def _getArtifactId(self,artifactTuple):
         artifactName = artifactTuple[0]
         artifactVersion = artifactTuple[1]
         dependotronConnection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
