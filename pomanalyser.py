@@ -8,45 +8,8 @@ Does not depend on!
 import unittest
 import os
 import pprint
-
-
-class ArtifactInfo:
-    def __init__(self, name, version):
-        self.name = name
-        self.version = version
-
-    def __eq__(self, other):
-        return self.name == other.name and self.version == other.version
-
-    def __str__(self):
-        return ":".join([self.name, self.version, self.direct_dependent])
-
-
-class DependencyInfo:
-    def __init__(self, name, version, direct_dependent):
-        self.name = name
-        self.version = version
-        self.direct_dependent = direct_dependent
-
-    def __eq__(self, other):
-        return self.name == other.name and \
-            self.version == other.version and \
-            self.direct_dependent == other.direct_dependent
-
-    def __str__(self):
-        return ":".join([self.name, self.version, self.direct_dependent])
-
-
-class ArtifactDependencyInfo:
-    """
-    Simple wrapper around the following directory.
-    from ((name, version), [(name, version, direct), ...)])
-        artifactInfo is a tuple: (name, version)
-        dependencies is a list: [(name1, version1, directFlag), ..., (nameN, versionN, directFlagN)]
-    """
-    def __init__(self, artifactInfo, dependencies):
-        self.artifactInfo = artifactInfo
-        self.dependencies = dependencies
+from artifactdependencyinfo import ArtifactDependencyInfo
+from artifactdependencyinfo import ArtifactInfo
 
 
 class PomAnalyser:
@@ -58,9 +21,8 @@ class PomAnalyser:
 
     def analyse(self, pomContents, use_direct_only = True, bbc_only = False):
         """
-        Analyses the contents of [pom] and returns a list of tuples of dependencies.
+        Analyses the contents of [pom] and returns a list of ArtifactDependencyInfo objects.
         Uses maven to do the analysis.
-        Returns an ArtifactDependencyInfo
         """
         pom_temporary_path_and_file_name = self._save_pom_contents_to_temporary_path(pomContents)
         tree_file = self._create_dependencies_text_file(pom_temporary_path_and_file_name, "tree.txt")
@@ -104,7 +66,9 @@ class PomAnalyser:
 
     def _get_dependencies_from(self, tree_file):
         dependencies = []
-        dependencies.append(DependencyInfo("something", "version", False))
+        for tree_line in tree_file.readlines():
+            (artifact_info, depth) = self._parse_tree_line(tree_line)
+            dependencies.append(ArtifactInfo(artifact_info.name, artifact_info.version, depth == 1))
         return dependencies
 
     def _split_tree_line_into_indent_and_package(self, tree_line):
@@ -140,7 +104,6 @@ class PomAnalyserTest(unittest.TestCase):
         self.assertEqual(level, 3)
 
 
-
 def do_integration_tests():
     pomFile = open("test/resources/simple_pom/pom.xml")
     pomContents = pomFile.readlines()
@@ -150,10 +113,13 @@ def do_integration_tests():
     # print dependencyInfo
     print "Maven dependencies for", artifact_dependency_info.artifactInfo.name, "(version", artifact_dependency_info.artifactInfo.version, ")", "analysed"
     print "Dependencies are:"
-    pprint.pprint(artifact_dependency_info.dependencies)
+    # pprint.pprint(artifact_dependency_info.dependencies)
+    for dependency in artifact_dependency_info.dependencies:
+        print dependency
     print "(end of dependencies)"
 
-# If run as a program then run tests
+
+# If run as a program then run all the tests
 if __name__ == "__main__":
-    do_integration_tests()
     # unittest.main()
+    do_integration_tests()

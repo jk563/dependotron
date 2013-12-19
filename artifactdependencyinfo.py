@@ -9,8 +9,17 @@ class ArtifactDependencyInfo:
         self.artifactInfo = artifactInfo
         self.dependencies = dependencies
 
+
 class ArtifactInfo:
-    def __init__(self, artifactName, artifactVersion, directDependency=0):
-        self.artifactName = artifactName
-        self.artifactVersion = artifactVersion
-        self.directDependency = directDependency
+    def __init__(self, artifact_name, artifact_version, direct_dependency=0):
+        self.name = artifact_name
+        self.version = artifact_version
+        self.direct_dependency = direct_dependency
+
+    def __eq__(self, other):
+        return self.name == other.name and \
+            self.version == other.version and \
+            self.direct_dependency == other.direct_dependency
+
+    def __str__(self):
+        return "<->".join([self.name, self.version, str(self.direct_dependency)])
