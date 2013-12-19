@@ -42,6 +42,7 @@ class Database:
         dependotronCursor.close()
         dependotronConnection.close()
 
+    # TODO : Use private get from database and formatter
     def _addArtifactIfDoesNotExist(self, artifactInfo):
         try:
             addArtifactConnection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password,
@@ -64,6 +65,7 @@ class Database:
         except:
             raise
 
+    # TODO : Use private get from database and formatter
     def _getArtifactId(self, artifactInfo):
         artifactIdConnection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
         artifactIdCursor = artifactIdConnection.cursor()
@@ -75,6 +77,7 @@ class Database:
         artifactIdConnection.close()
         return artifactId
 
+    # TODO : Use private get from database and formatter
     def pomAnalysisExists(self, artifactInfo):
         pomExists = False
         pomAnalysisConnection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
@@ -99,6 +102,7 @@ class Database:
         else:
             return False
 
+    # TODO : Use private get from database and formatter
     def getArtifactInfo(self, artifactName, artifactVersion=None):
         artifactInfoConnection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
         artifactInfoCursor = artifactInfoConnection.cursor()
