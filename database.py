@@ -94,23 +94,27 @@ class Database:
         return pomExists
 
     def doesArtifactExist(self, artifactName, artifactVersion=None):
-        artifactExistsConnection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
-        artifactExistsCursor = artifactExistsConnection.cursor()
+        if len(self.getArtifactInfo(artifactName, artifactVersion)) != 0:
+            return True
+        else:
+            return False
+
+    def getArtifactInfo(self, artifactName, artifactVersion=None):
+        artifactInfoConnection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
+        artifactInfoCursor = artifactInfoConnection.cursor()
         if artifactVersion == None:
-            existsSQL = "SELECT * FROM artifacts WHERE (artifact_name='%s')" % \
+            existsSQL = "SELECT artifact_name,artifact_version FROM artifacts WHERE (artifact_name='%s')" % \
                         (artifactName)
         else:
-            existsSQL = "SELECT * FROM artifacts WHERE (artifact_name='%s' AND artifact_version='%s')" % \
+            existsSQL = "SELECT artifact_name,artifact_version FROM artifacts WHERE (artifact_name='%s' AND artifact_version='%s')" % \
                         (artifactName, artifactVersion)
-        artifactExistsCursor.execute(existsSQL)
-        if artifactExistsCursor.rowcount == 0:
-            artifactExists = False
-        else:
-            artifactExists = True
-        artifactExistsCursor.close()
-        artifactExistsConnection.close()
-        return artifactExists
-
+        artifactInfoCursor.execute(existsSQL)
+        artifacts = []
+        for artifact in artifactInfoCursor.fetchall():
+            artifacts.append(artifactdependencyinfo.ArtifactInfo(artifact[0],artifact[1]))
+        artifactInfoCursor.close()
+        artifactInfoConnection.close()
+        return artifacts
 
 if __name__ == '__main__':
     gen = schemaGenerator.SchemaGenerator()
@@ -136,5 +140,3 @@ if __name__ == '__main__':
          artifactdependencyinfo.ArtifactInfo('dep3', 'ver2', 1)])
 
     db.add(artifactDependencyInfo)
-
-    print db.doesArtifactExist('dep1','ver2')
