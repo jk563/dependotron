@@ -22,8 +22,8 @@ class PomProcessorTest(unittest.TestCase):
         self._pom_processor = PomProcessor(self._pom_fetcher, self._pom_analyser, self._database)
 
         self._pom_processor.update(self._pom_content)
-        self.assertEqual("pomGroupId.pomArtifactId", self._database.get_artifact_info().artifactName)
-        self.assertEqual("0.1.0", self._database.get_artifact_info().artifactVersion)
+        self.assertEqual("pomGroupId.pomArtifactId", self._database.get_artifact_info().name)
+        self.assertEqual("0.1.0", self._database.get_artifact_info().version)
 
     def test_output_of_analysis_written_to_database(self):
         dependency_info = "something"
