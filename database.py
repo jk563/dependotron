@@ -94,7 +94,7 @@ class Database:
         return pomExists
 
     def doesArtifactExist(self, artifactName, artifactVersion=None):
-        if self.getArtifactInfo(artifactName, artifactVersion) != None:
+        if len(self.getArtifactInfo(artifactName, artifactVersion)) != 0:
             return True
         else:
             return False
@@ -109,10 +109,9 @@ class Database:
             existsSQL = "SELECT artifact_name,artifact_version FROM artifacts WHERE (artifact_name='%s' AND artifact_version='%s')" % \
                         (artifactName, artifactVersion)
         artifactInfoCursor.execute(existsSQL)
-        if artifactInfoCursor.rowcount == 0:
-            artifacts = None
-        else:
-            artifacts = artifactInfoCursor.fetchall()
+        artifacts = []
+        for artifact in artifactInfoCursor.fetchall():
+            artifacts.append(artifactdependencyinfo.ArtifactInfo(artifact[0],artifact[1]))
         artifactInfoCursor.close()
         artifactInfoConnection.close()
         return artifacts
