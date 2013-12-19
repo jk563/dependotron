@@ -46,7 +46,7 @@ class Database:
         descendantId = str(self._getArtifactId(descendantInfo))
         dependotronConnection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
         dependotronCursor = dependotronConnection.cursor()
-        addDependencySQL = "INSERT INTO dependencies (parent_id,descendant_id,direct_dependency) VALUES ('" + parentId + "','" + descendantId + "','" + descendantInfo.directDependency + "');"
+        addDependencySQL = "INSERT INTO dependencies (parent_id,descendant_id,direct_dependency) VALUES ('" + parentId + "','" + descendantId + "','" + str(descendantInfo.directDependency) + "');"
         try:
             dependotronCursor.execute(addDependencySQL)
             dependotronConnection.commit()
@@ -70,7 +70,7 @@ class Database:
             artifactId =  str(dependotronCursor.fetchall()[0][0])
             getParentSQL = "SELECT DISTINCT parent_id FROM dependencies WHERE (parent_id='" + artifactId + "')"
             dependotronCursor.execute(getParentSQL)
-            if(dependotronCursor.rowcount != 1):
+            if(dependotronCursor.rowcount == 1):
                 return True
         return False
 
@@ -91,6 +91,5 @@ if __name__ == '__main__':
     dependotronCursor = dependotronConnection.cursor()
 
     db = Database()
-    artifactDependencyInfo = pomanalyser.ArtifactDependencyInfo(('root','rootversion'),[('dep1','ver1', 1), ('dep2','ver1', 1), ('dep1','ver2', 0), ('dep1','ver2', 1), ('dep3','ver2', 1)])
+    artifactDependencyInfo = pomanalyser.ArtifactDependencyInfo(artifactdependencyinfo.ArtifactInfo('root','rootversion'),[artifactdependencyinfo.ArtifactInfo('dep1','ver1', 1), artifactdependencyinfo.ArtifactInfo('dep2','ver1', 1), artifactdependencyinfo.ArtifactInfo('dep1','ver2', 0), artifactdependencyinfo.ArtifactInfo('dep1','ver2', 1), artifactdependencyinfo.ArtifactInfo('dep3','ver2', 1)])
     db.add(artifactDependencyInfo)
-    info = artifactdependencyinfo.ArtifactInfo('root','rootversion')
