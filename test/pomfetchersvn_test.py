@@ -15,7 +15,7 @@ class PomFetcherSvnTest(unittest.TestCase):
         self._pom_found_subject = None
 
     def test_crawl_finds_expected_number_of_poms(self):
-        self._pom_fetcher.crawl()
+        self._pom_fetcher.fetch()
         self.assertEqual(len(self._pom_found_subject.get_contents()), self.max_items_to_read)
 
 class TestPomFoundSubject:

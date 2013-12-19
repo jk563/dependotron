@@ -15,11 +15,11 @@ class PomFetcherFolderTest(unittest.TestCase):
         self._pom_found_subject = None
 
     def test_crawl_finds_expected_number_of_poms(self):
-        self._pom_fetcher.crawl()
+        self._pom_fetcher.fetch()
         self.assertEqual(len(self._pom_found_subject.get_contents()), self.max_items_to_read)
 
     def test_crawl_returns_some_content(self):
-        self._pom_fetcher.crawl()
+        self._pom_fetcher.fetch()
         contents = self._pom_found_subject.get_contents()[0]
         self.assertTrue(contents.startswith("<?xml version=\"1.0\"?>\n<project xmlns=\"http://maven.apache.org/POM/"))
 

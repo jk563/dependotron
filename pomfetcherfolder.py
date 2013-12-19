@@ -9,7 +9,7 @@ class PomFetcherFolder:
         pom_list = glob.glob(folder_path +"*.xml")
         return pom_list[0:max_items_to_read]
 
-    def crawl(self):
+    def fetch(self):
         for filepath in self._pom_filepath_list:
             data = open(filepath, "r").read()
             self._pom_found_subject.notify_observers(data)

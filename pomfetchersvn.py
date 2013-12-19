@@ -4,6 +4,6 @@ class PomFetcherSvn:
         self._current_path = root_path
         self._pom_found_subject = pom_found_subject
 
-    def crawl(self):
+    def fetch(self):
         # recurse through svn. call self._pom_found_subject.notify_observers(pom_contents) when pom found
         pass
