@@ -33,6 +33,12 @@ class MockDatabase:
     def getArtifactInfo(self, artifactName, artifactVersion=None):
         return [ArtifactInfo("name1", "version1"), ArtifactInfo("name2", "version2")]
 
+    def getDownstreamDependencies(self, artifactInfo):
+        pass
+
+    def getUpstreamDependencies(self, artifactInfo):
+        pass
+
 
 class VisualiserTest(unittest.TestCase):
     def setUp(self):
@@ -45,6 +51,8 @@ class VisualiserTest(unittest.TestCase):
     def test_given_database_does_not_know_artifact_when_plot_graph_then_does_throw_exception(self):
         self.assertRaises(LookupError, self.visualiser.plot_graph_for_artifact, "bar")
 
+    # def test_given_database_knows_artifact_then_when_plot_graph_then_
+
 
 # If run as a program then handle parameters and run
 if __name__ == "__main__":
@@ -55,7 +63,12 @@ if __name__ == "__main__":
                         default=1,
                         help="Maximum number of steps to show from the artifact")
     args = parser.parse_args()
+    database = Database()
+    artifactInfo = None
 
-    if args.artifact:
-        visualiser = Visualiser(Database())
-        visualiser.plot_graph_for_artifact(args.artifact)
+    if args.artifact and database.doesArtifactExist(args.artifact):
+        # visualiser = Visualiser(Database())
+        # visualiser.plot_graph_for_artifact(args.artifact)
+        artifacts = database.getArtifactInfo(args.artifact)
+    else:
+        print "Artifact (%s) not known." % (args.artifact)
