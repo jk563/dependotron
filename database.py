@@ -79,21 +79,37 @@ class Database:
         pomExists = False
         pomAnalysisConnection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
         pomAnalysisCursor = pomAnalysisConnection.cursor()
-        try:
-            getArtifactIdSQL = "SELECT artifact_id FROM artifacts WHERE (artifact_name='%s' AND artifact_version='%s')" % \
-                               (artifactInfo.name, artifactInfo.version)
-            pomAnalysisCursor.execute(getArtifactIdSQL)
-            if (pomAnalysisCursor.rowcount == 1):
-                artifactId = pomAnalysisCursor.fetchall()[0][0]
-                getParentSQL = "SELECT DISTINCT parent_id FROM dependencies WHERE (parent_id='%s')" % \
-                               (artifactId,)
-                pomAnalysisCursor.execute(getParentSQL)
-                if pomAnalysisCursor.rowcount == 1:
-                    pomExists = True
-        finally:
-            pomAnalysisCursor.close()
-            pomAnalysisConnection.close()
-            return pomExists
+        getArtifactIdSQL = "SELECT artifact_id FROM artifacts WHERE (artifact_name='%s' AND artifact_version='%s')" % \
+                           (artifactInfo.name, artifactInfo.version)
+        pomAnalysisCursor.execute(getArtifactIdSQL)
+        if (pomAnalysisCursor.rowcount == 1):
+            artifactId = pomAnalysisCursor.fetchall()[0][0]
+            getParentSQL = "SELECT DISTINCT parent_id FROM dependencies WHERE (parent_id='%s')" % \
+                           (artifactId,)
+            pomAnalysisCursor.execute(getParentSQL)
+            if pomAnalysisCursor.rowcount == 1:
+                pomExists = True
+        pomAnalysisCursor.close()
+        pomAnalysisConnection.close()
+        return pomExists
+
+    def doesArtifactExist(self, artifactName, artifactVersion=None):
+        artifactExistsConnection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
+        artifactExistsCursor = artifactExistsConnection.cursor()
+        if artifactVersion == None:
+            existsSQL = "SELECT * FROM artifacts WHERE (artifact_name='%s')" % \
+                        (artifactName)
+        else:
+            existsSQL = "SELECT * FROM artifacts WHERE (artifact_name='%s' AND artifact_version='%s')" % \
+                        (artifactName, artifactVersion)
+        artifactExistsCursor.execute(existsSQL)
+        if artifactExistsCursor.rowcount == 0:
+            artifactExists = False
+        else:
+            artifactExists = True
+        artifactExistsCursor.close()
+        artifactExistsConnection.close()
+        return artifactExists
 
 
 if __name__ == '__main__':
@@ -118,4 +134,7 @@ if __name__ == '__main__':
          artifactdependencyinfo.ArtifactInfo('dep2', 'ver1', 1),
          artifactdependencyinfo.ArtifactInfo('dep1', 'ver2', 1),
          artifactdependencyinfo.ArtifactInfo('dep3', 'ver2', 1)])
-    print db.add(artifactDependencyInfo)
+
+    db.add(artifactDependencyInfo)
+
+    print db.doesArtifactExist('dep1','ver2')
