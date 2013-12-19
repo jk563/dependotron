@@ -57,7 +57,7 @@ class Database:
     def _addDescendant(self, artifactInfo, descendantInfo, cur):
         parentId = self._getArtifactId(artifactInfo)
         descendantId = self._getArtifactId(descendantInfo)
-        addDependencySQL = "INSERT INTO dependencies (parent_id,descendant_id,direct_dependency) VALUES ('%s','%s','%s');" % \
+        addDependencySQL = "INSERT INTO dependencies (parent_id,descendant_id,direct_dependency) VALUES ('%s','%s','%d');" % \
                            (parentId, descendantId, descendantInfo.direct_dependency)
         try:
             cur.execute(addDependencySQL)

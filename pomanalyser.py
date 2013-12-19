@@ -74,8 +74,7 @@ class PomAnalyser:
         return dependencies
 
     def _split_tree_line_into_indent_and_package(self, tree_line):
-        first_word_char = re.search('\w', tree_line).start()
-        last_space = first_word_char - 1
+        last_space = re.search('\w', tree_line).start() - 1
         indent_string = tree_line[:last_space].strip()
         package_string = tree_line[last_space + 1:].strip()
         return (indent_string, package_string)
