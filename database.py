@@ -23,14 +23,31 @@ class Database:
         Add new information to the database. [dependencyEntry] might be a tuple of:
         (dependencyName, dependencyVersion, dependentName, dependentVersion)
         """
-        self._addArtifact(artifactDependencyInfo.artifactInfo)
+        try:
+            self._addArtifact(artifactDependencyInfo.artifactInfo)
+        except:
+            pass
+
         for descendant in artifactDependencyInfo.dependencies:
-            self._addDescendant(artifactDependencyInfo.artifactInfo,descendant)
+            try:
+                self._addArtifact(descendant)
+            except:
+                pass
+
+            # Make this bit a transaction
+        try:
+            for descendant in artifactDependencyInfo.dependencies:
+                self._addDescendant(artifactDependencyInfo.artifactInfo,descendant)
+        except:
+            pass
+
+
 
     def _addArtifact(self, artifactInfo):
         dependotronConnection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
         dependotronCursor = dependotronConnection.cursor()
-        addArtifactIdSQL = "INSERT INTO artifacts (artifact_name,artifact_version) VALUES ('" + artifactInfo.artifactName + "','" + artifactInfo.artifactVersion + "');"
+        addArtifactIdSQL = "INSERT INTO artifacts (artifact_name,artifact_version) VALUES ('%s','%s');" % \
+                           (artifactInfo.artifactName,artifactInfo.artifactVersion)
         try:
             dependotronCursor.execute(addArtifactIdSQL)
             dependotronConnection.commit()
@@ -38,15 +55,12 @@ class Database:
             pass
 
     def _addDescendant(self, artifactInfo, descendantInfo):
-        try:
-            self._addArtifact(descendantInfo)
-        except:
-            pass
-        parentId = str(self._getArtifactId(artifactInfo))
-        descendantId = str(self._getArtifactId(descendantInfo))
+        parentId = self._getArtifactId(artifactInfo)
+        descendantId = self._getArtifactId(descendantInfo)
         dependotronConnection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
         dependotronCursor = dependotronConnection.cursor()
-        addDependencySQL = "INSERT INTO dependencies (parent_id,descendant_id,direct_dependency) VALUES ('" + parentId + "','" + descendantId + "','" + str(descendantInfo.directDependency) + "');"
+        addDependencySQL = "INSERT INTO dependencies (parent_id,descendant_id,direct_dependency) VALUES ('%s','%s','%s');" % \
+                            (parentId,descendantId,descendantInfo.directDependency)
         try:
             dependotronCursor.execute(addDependencySQL)
             dependotronConnection.commit()
@@ -56,7 +70,8 @@ class Database:
     def _getArtifactId(self, artifactInfo):
         dependotronConnection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
         dependotronCursor = dependotronConnection.cursor()
-        getArtifactIdSQL = "SELECT artifact_id FROM artifacts WHERE (artifact_name='" + artifactInfo.artifactName + "' AND artifact_version='" + artifactInfo.artifactVersion + "')"
+        getArtifactIdSQL = "SELECT artifact_id FROM artifacts WHERE (artifact_name='%s' AND artifact_version='%s')" % \
+                            (artifactInfo.artifactName, artifactInfo.artifactVersion)
         dependotronCursor.execute(getArtifactIdSQL)
         artifactId =  dependotronCursor.fetchall()[0][0]
         return artifactId
@@ -64,11 +79,13 @@ class Database:
     def pomAnalysisExists(self,artifactInfo):
         dependotronConnection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
         dependotronCursor = dependotronConnection.cursor()
-        getArtifactIdSQL = "SELECT artifact_id FROM artifacts WHERE (artifact_name='" + artifactInfo.artifactName + "' AND artifact_version='" + artifactInfo.artifactVersion + "')"
+        getArtifactIdSQL = "SELECT artifact_id FROM artifacts WHERE (artifact_name='%s' AND artifact_version='%s')" % \
+                            (artifactInfo.artifactName,artifactInfo.artifactVersion)
         dependotronCursor.execute(getArtifactIdSQL)
         if(dependotronCursor.rowcount == 1):
             artifactId =  str(dependotronCursor.fetchall()[0][0])
-            getParentSQL = "SELECT DISTINCT parent_id FROM dependencies WHERE (parent_id='" + artifactId + "')"
+            getParentSQL = "SELECT DISTINCT parent_id FROM dependencies WHERE (parent_id='%s')" % \
+                            (artifactId,)
             dependotronCursor.execute(getParentSQL)
             if(dependotronCursor.rowcount == 1):
                 return True
