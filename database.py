@@ -122,12 +122,12 @@ class Database:
         downstreamDependenciesConnection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
         downstreamDependenciesCursor = downstreamDependenciesConnection.cursor()
         artifactId = self._getArtifactId(artifactInfo)
-        existsSQL = "SELECT artifact_name,artifact_version FROM artifacts, dependencies WHERE (parent_id=%s AND artifact_id=descendant_id);" % \
+        existsSQL = "SELECT artifact_name,artifact_version, direct_dependency FROM artifacts, dependencies WHERE (parent_id=%s AND artifact_id=descendant_id);" % \
                     (artifactId)
         downstreamDependenciesCursor.execute(existsSQL)
         artifacts = []
         for artifact in downstreamDependenciesCursor.fetchall():
-            artifacts.append(artifactdependencyinfo.ArtifactInfo(artifact[0],artifact[1]))
+            artifacts.append(artifactdependencyinfo.ArtifactInfo(artifact[0],artifact[1], artifact[2]))
         downstreamDependenciesCursor.close()
         downstreamDependenciesConnection.close()
         return artifactdependencyinfo.ArtifactDependencyInfo(artifactInfo, artifacts)
@@ -138,12 +138,12 @@ class Database:
         upstreamDependenciesConnection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
         upstreamDependenciesCursor = upstreamDependenciesConnection.cursor()
         artifactId = self._getArtifactId(artifactInfo)
-        existsSQL = "SELECT artifact_name,artifact_version FROM artifacts, dependencies WHERE (descendant_id=%s AND artifact_id=parent_id);" % \
+        existsSQL = "SELECT artifact_name,artifact_version, direct_dependency FROM artifacts, dependencies WHERE (descendant_id=%s AND artifact_id=parent_id);" % \
                     (artifactId)
         upstreamDependenciesCursor.execute(existsSQL)
         artifacts = []
         for artifact in upstreamDependenciesCursor.fetchall():
-            artifacts.append(artifactdependencyinfo.ArtifactInfo(artifact[0],artifact[1]))
+            artifacts.append(artifactdependencyinfo.ArtifactInfo(artifact[0],artifact[1], artifact[2]))
         upstreamDependenciesCursor.close()
         upstreamDependenciesConnection.close()
         return artifactdependencyinfo.ArtifactDependencyInfo(artifactInfo, artifacts)
