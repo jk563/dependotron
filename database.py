@@ -22,9 +22,9 @@ class Database:
         Add new information to the database. [dependencyEntry] might be a tuple of:
         (dependencyName, dependencyVersion, dependentName, dependentVersion)
         """
-        self.addArtifact(artifactDependencyInfo.artifactInfo)
+        self._addArtifact(artifactDependencyInfo.artifactInfo)
         for descendant in artifactDependencyInfo.dependencies:
-            self.addDescendant(artifactDependencyInfo.artifactInfo,descendant)
+            self._addDescendant(artifactDependencyInfo.artifactInfo,descendant)
 
     def _addArtifact(self, artifactTuple):
         artifactName = artifactTuple[0]
@@ -39,18 +39,16 @@ class Database:
             pass
 
     def _addDescendant(self, artifactTuple, descendantTuple):
-        print descendantTuple
         try:
-            self.addArtifact(descendantTuple)
+            self._addArtifact(descendantTuple)
         except:
             pass
-        parentId = str(self.getArtifactId(artifactTuple))
-        descendantId = str(self.getArtifactId(descendantTuple))
+        parentId = str(self._getArtifactId(artifactTuple))
+        descendantId = str(self._getArtifactId(descendantTuple))
         directDescendant = str(descendantTuple[2] | 0)
         dependotronConnection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
         dependotronCursor = dependotronConnection.cursor()
         addDependencySQL = "INSERT INTO dependencies (parent_id,descendant_id,direct_dependency) VALUES ('" + parentId + "','" + descendantId + "','" + directDescendant + "');"
-        print addDependencySQL
         try:
             dependotronCursor.execute(addDependencySQL)
             dependotronConnection.commit()
@@ -66,6 +64,21 @@ class Database:
         dependotronCursor.execute(getArtifactIdSQL)
         artifactId =  dependotronCursor.fetchall()[0][0]
         return artifactId
+
+    def pomAnalysisExists(self,artifactTuple):
+        artifactName = artifactTuple[0]
+        artifactVersion = artifactTuple[1]
+        dependotronConnection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
+        dependotronCursor = dependotronConnection.cursor()
+        getArtifactIdSQL = "SELECT artifact_id FROM artifacts WHERE (artifact_name='" + artifactName + "' AND artifact_version='" + artifactVersion + "')"
+        dependotronCursor.execute(getArtifactIdSQL)
+        if(dependotronCursor.rowcount == 1):
+            artifactId =  str(dependotronCursor.fetchall()[0][0])
+            getParentSQL = "SELECT parent_id FROM dependencies WHERE (parent_id='" + artifactId + "')"
+            dependotronCursor.execute(getArtifactIdSQL)
+            if(dependotronCursor.rowcount ==1):
+                return True
+        return False
 
 
 if __name__ == '__main__':
@@ -84,5 +97,5 @@ if __name__ == '__main__':
     dependotronCursor = dependotronConnection.cursor()
 
     db = Database()
-    artifactDependencyInfo = pomanalyser.ArtifactDependencyInfo(('root','rootverstion'),[('dep1','ver1', 1), ('dep2','ver1', 1), ('dep1','ver2', 0), ('dep1','ver2', 1), ('dep3','ver2', 1)])
+    artifactDependencyInfo = pomanalyser.ArtifactDependencyInfo(('root','rootversion'),[('dep1','ver1', 1), ('dep2','ver1', 1), ('dep1','ver2', 0), ('dep1','ver2', 1), ('dep3','ver2', 1)])
     db.add(artifactDependencyInfo)
