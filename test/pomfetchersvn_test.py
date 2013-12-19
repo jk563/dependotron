@@ -7,28 +7,27 @@ class PomFetcherSvnTest(unittest.TestCase):
     max_items_to_read = 5
 
     def setUp(self):
-        self._pom_fetcher_folder = PomFetcherSvn('http://svn/repo/something', self.max_items_to_read)
+        self._pom_found_subject = TestPomFoundSubject()
+        self._pom_fetcher = PomFetcherSvn('http://svn/repo/something', self.max_items_to_read, self._pom_found_subject)
 
     def tearDown(self):
-        self._pom_fetcher_folder = None
+        self._pom_fetcher = None
+        self._pom_found_subject = None
 
-    def test_has_next_returns_true_then_false_after_reading_pom_contents(self):
-        for i in range(self.max_items_to_read):
-            self.assertTrue(self._pom_fetcher_folder.has_next())
-            self._pom_fetcher_folder.get_pom_contents()
+    def test_crawl_finds_expected_number_of_poms(self):
+        self._pom_fetcher.crawl()
+        self.assertEqual(len(self._pom_found_subject.get_contents()), self.max_items_to_read)
 
-        self.assertFalse(self._pom_fetcher_folder.has_next())
+class TestPomFoundSubject:
 
-    def test_get_pom_contents_returns_some_content(self):
-        contents = self._pom_fetcher_folder.get_pom_contents()
-        self.assertTrue(contents.startswith("<?xml version=\"1.0\"?>\n<project xmlns=\"http://maven.apache.org/POM/"))
+    def __init__(self):
+        self._content = []
 
-    def test_repeated_calls_to_get_pom_contents_are_safe(self):
-        for i in range(self.max_items_to_read):
-            self._pom_fetcher_folder.get_pom_contents()
+    def get_contents(self):
+        return self._content
 
-        contents = self._pom_fetcher_folder.get_pom_contents()
-        self.assertIsNone(contents)
+    def notify_observers(self, pom_content):
+        self._content.append(pom_content)
 
 if __name__ == '__main__':
     unittest.main()

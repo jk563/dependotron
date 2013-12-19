@@ -1,10 +1,9 @@
 
 class PomFetcherSvn:
-    def __init__(self, root_path, max_items_to_read):
+    def __init__(self, root_path, max_items_to_read, pom_found_subject):
         self._current_path = root_path
+        self._pom_found_subject = pom_found_subject
 
-    def has_next(self):
-        return False
-
-    def get_pom_contents(self):
-        return None
+    def crawl(self):
+        # recurse through svn. call self._pom_found_subject.notify_observers(pom_contents) when pom found
+        pass
