@@ -5,23 +5,27 @@ except ImportError:
 from artifactdependencyinfo import ArtifactInfo
 
 class PomProcessor:
-    def __init__(self, pom_analyser, database):
+    def __init__(self, pom_analyser, database, logger):
         self._pom_analyser = pom_analyser
         self._database = database
+        self._logger = logger
 
     def update(self, pom_content_string):
         pom_tree = ET.fromstring(pom_content_string)
         artifactInfo = self._create_info_from_pom_tree(pom_tree)
+        self._log('Found POM for artifact: %s : %s' % (artifactInfo.name, artifactInfo.version))
         if not self._database.pomAnalysisExists(artifactInfo):
             artifact_dependency_info = self._pom_analyser.analyse(pom_content_string, True)
             self._database.add(artifact_dependency_info)
+        else:
+            self._log("This artifact has already been analysed. Skipping...")
 
     def _create_info_from_pom_tree(self, pom_tree):
         artifact_info = ArtifactInfo(self._get_artifact_name(pom_tree), self._get_artifact_version(pom_tree))
         return artifact_info
 
     def _get_artifact_name(self, pom_tree):
-        return self._get_group_id(pom_tree) + "." + self._get_artifact_id(pom_tree)
+        return self._get_group_id(pom_tree) + ":" + self._get_artifact_id(pom_tree)
 
     def _get_artifact_id(self, pom_tree):
         attribute = pom_tree.find('{http://maven.apache.org/POM/4.0.0}artifactId')
@@ -34,3 +38,7 @@ class PomProcessor:
     def _get_artifact_version(self, pom_tree):
         attribute = pom_tree.find('{http://maven.apache.org/POM/4.0.0}version')
         return attribute.text
+
+    def _log(self, message):
+        if not self._logger == None:
+            self._logger.log(message)

@@ -79,6 +79,9 @@ class Database:
 
     # TODO : Use private get from database and formatter
     def pomAnalysisExists(self, artifactInfo):
+        # This sql will do the query in one go
+        # sql = "SELECT COUNT(*) FROM dependencies WHERE parent_id = (SELECT artifact_id FROM artifacts WHERE artifact_name = '%s' and artifact_version = '%s')"
+        # sql = sql % (artifactInfo.name, artifactInfo.version)
         pomExists = False
         pomAnalysisConnection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
         pomAnalysisCursor = pomAnalysisConnection.cursor()

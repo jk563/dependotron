@@ -3,6 +3,7 @@ Depend-o-tron
 Tool for finding dependencies of maven artifacts, using Python, SVN, Maven, MySQL, graphviz...
 """
 from optparse import OptionParser
+from logger import Logger
 from database import Database
 from pomProcessor import PomProcessor
 from pomanalyser import PomAnalyser
@@ -29,6 +30,7 @@ class Main:
 
     def _create_objects(self):
         self._pom_found_subject = PomFoundSubject()
+        logger = Logger()
 
         if self._svn_or_folder == "FOLDER":
             self._pom_fetcher = PomFetcherFolder(self._starting_path, self._max_items, self._pom_found_subject)
@@ -38,7 +40,7 @@ class Main:
         pom_analyser = PomAnalyser()
         database = Database()
 
-        self._pom_processor = PomProcessor(pom_analyser, database)
+        self._pom_processor = PomProcessor(pom_analyser, database, logger)
 
 
 # If run as a program then handle parameters and run

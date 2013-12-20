@@ -8,26 +8,28 @@ class PomProcessorTest(unittest.TestCase):
         self._pom_content = open('resources/xml/basicPom.xml', "r").read()
         self._pom_analyser = None
         self._database = None
+        self._logger = None
 
     def tearDown(self):
         self._pom_content = None
         self._pom_analyser = None
         self._database = None
+        self._logger = None
         self.pomProcessor = None
 
     def test_database_asked_if_correct_artifact_analysis_exists(self):
         self._database = TestDatabaseAnalysisExists()
-        self._pom_processor = PomProcessor(self._pom_analyser, self._database)
+        self._pom_processor = PomProcessor(self._pom_analyser, self._database, self._logger)
 
         self._pom_processor.update(self._pom_content)
-        self.assertEqual("pomGroupId.pomArtifactId", self._database.get_artifact_info().name)
+        self.assertEqual("pomGroupId:pomArtifactId", self._database.get_artifact_info().name)
         self.assertEqual("0.1.0", self._database.get_artifact_info().version)
 
     def test_output_of_analysis_written_to_database(self):
         dependency_info = "something"
         self._pom_analyser = TestPomAnalyser(dependency_info)
         self._database = TestDatabaseAnalysisNotExists()
-        self._pom_processor = PomProcessor(self._pom_analyser, self._database)
+        self._pom_processor = PomProcessor(self._pom_analyser, self._database, self._logger)
 
         self._pom_processor.update(self._pom_content)
         self.assertEqual(dependency_info, self._database.get_artifact_dependency_info())
