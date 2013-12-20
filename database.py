@@ -9,14 +9,20 @@ class Database:
         self.user = 'root'
         self.password = ''
         self.database = 'dependotron'
+        self.connection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
+        self.cursor = self.connection.cursor()
+
+    def __del__(self):
+        self.connection.close()
+        self.cursor.close()
 
     def configure(self):
         """
         Tests if the database is there, builds it if not. Maybe throws exception if wrong schema?
         Alternatively this could be done in the constructor
         """
-        generator = schemaGenerator.SchemaGenerator()
-        generator.generateSchema(self.host, self.user, self.password, self.database)
+        generator = schemaGenerator.SchemaGenerator(self.host, self.user, self.password, self.database)
+        generator.generateSchema()
 
 
     def add(self, artifactDependencyInfo):
@@ -34,47 +40,40 @@ class Database:
         return True
 
     def _addDependenciesTransaction(self, artifactDependencyInfo):
-        dependotronConnection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
-        dependotronCursor = dependotronConnection.cursor()
-        for descendant in artifactDependencyInfo.dependencies:
-            self._addDescendant(artifactDependencyInfo.artifactInfo, descendant, dependotronCursor)
-        dependotronConnection.commit()
-        dependotronCursor.close()
-        dependotronConnection.close()
+        try:
+            for descendant in artifactDependencyInfo.dependencies:
+                self._addDescendant(artifactDependencyInfo.artifactInfo, descendant)
+            self.connection.commit() # Commit transaction
+        except:
+            self.connection.rollback()
+            raise
 
     # TODO : Use private get from database and formatter
     def _addArtifactIfDoesNotExist(self, artifactInfo):
         try:
-            addArtifactConnection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password,
-                                                    db=self.database)
-            addArtifactCursor = addArtifactConnection.cursor()
             addArtifactIdSQL = "INSERT INTO artifacts (artifact_name,artifact_version) VALUES ('%s','%s');" % \
                                (artifactInfo.name, artifactInfo.version)
-            addArtifactCursor.execute(addArtifactIdSQL)
-            addArtifactConnection.commit()
+            self.cursor.execute(addArtifactIdSQL)
+            self.connection.commit()
         except:
             pass
 
-    def _addDescendant(self, artifactInfo, descendantInfo, cur):
+    def _addDescendant(self, artifactInfo, descendantInfo):
         parentId = self._getArtifactId(artifactInfo)
         descendantId = self._getArtifactId(descendantInfo)
         addDependencySQL = "INSERT INTO dependencies (parent_id,descendant_id,direct_dependency) VALUES ('%s','%s','%d');" % \
                            (parentId, descendantId, descendantInfo.direct_dependency)
         try:
-            cur.execute(addDependencySQL)
+            self.cursor.execute(addDependencySQL)
         except:
             raise
 
     # TODO : Use private get from database and formatter
     def _getArtifactId(self, artifactInfo):
-        artifactIdConnection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
-        artifactIdCursor = artifactIdConnection.cursor()
         getArtifactIdSQL = "SELECT artifact_id FROM artifacts WHERE (artifact_name='%s' AND artifact_version='%s')" % \
                            (artifactInfo.name, artifactInfo.version)
-        artifactIdCursor.execute(getArtifactIdSQL)
-        artifactId = artifactIdCursor.fetchall()[0][0]
-        artifactIdCursor.close()
-        artifactIdConnection.close()
+        self.cursor.execute(getArtifactIdSQL)
+        artifactId = self.cursor.fetchall()[0][0]
         return artifactId
 
     # TODO : Use private get from database and formatter
@@ -83,20 +82,16 @@ class Database:
         # sql = "SELECT COUNT(*) FROM dependencies WHERE parent_id = (SELECT artifact_id FROM artifacts WHERE artifact_name = '%s' and artifact_version = '%s')"
         # sql = sql % (artifactInfo.name, artifactInfo.version)
         pomExists = False
-        pomAnalysisConnection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
-        pomAnalysisCursor = pomAnalysisConnection.cursor()
         getArtifactIdSQL = "SELECT artifact_id FROM artifacts WHERE (artifact_name='%s' AND artifact_version='%s')" % \
                            (artifactInfo.name, artifactInfo.version)
-        pomAnalysisCursor.execute(getArtifactIdSQL)
-        if (pomAnalysisCursor.rowcount == 1):
-            artifactId = pomAnalysisCursor.fetchall()[0][0]
+        self.cursor.execute(getArtifactIdSQL)
+        if (self.cursor.rowcount == 1):
+            artifactId = self.cursor.fetchall()[0][0]
             getParentSQL = "SELECT DISTINCT parent_id FROM dependencies WHERE (parent_id='%s')" % \
                            (artifactId,)
-            pomAnalysisCursor.execute(getParentSQL)
-            if pomAnalysisCursor.rowcount == 1:
+            self.cursor.execute(getParentSQL)
+            if self.cursor.rowcount == 1:
                 pomExists = True
-        pomAnalysisCursor.close()
-        pomAnalysisConnection.close()
         return pomExists
 
     def doesArtifactExist(self, artifactName, artifactVersion=None):
@@ -107,20 +102,16 @@ class Database:
 
     # TODO : Use private get from database and formatter
     def getArtifactInfo(self, artifactName, artifactVersion=None):
-        artifactInfoConnection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
-        artifactInfoCursor = artifactInfoConnection.cursor()
         if artifactVersion == None:
             existsSQL = "SELECT artifact_name,artifact_version FROM artifacts WHERE (artifact_name='%s')" % \
                         (artifactName)
         else:
             existsSQL = "SELECT artifact_name,artifact_version FROM artifacts WHERE (artifact_name='%s' AND artifact_version='%s')" % \
                         (artifactName, artifactVersion)
-        artifactInfoCursor.execute(existsSQL)
+        self.cursor.execute(existsSQL)
         artifacts = []
-        for artifact in artifactInfoCursor.fetchall():
+        for artifact in self.cursor.fetchall():
             artifacts.append(artifactdependencyinfo.ArtifactInfo(artifact[0],artifact[1]))
-        artifactInfoCursor.close()
-        artifactInfoConnection.close()
         return artifacts
 
     def getDownstreamDependencies(self, artifactInfo):
@@ -142,12 +133,8 @@ class Database:
         return artifactdependencyinfo.ArtifactDependencyInfo(artifactInfo, dependencies)
 
     def _getFromDatabase(self, sql, formatter=None):
-        databaseConnection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
-        databaseCursor = databaseConnection.cursor()
-        databaseCursor.execute(sql)
-        sqlResult = databaseCursor.fetchall()
-        databaseCursor.close()
-        databaseConnection.close()
+        self.cursor.execute(sql)
+        sqlResult = self.cursor.fetchall()
         if formatter:
             if formatter.format:
                 return formatter.format(sqlResult)
@@ -178,8 +165,6 @@ class FormatterException(Exception):
     pass
 
 if __name__ == '__main__':
-    gen = schemaGenerator.SchemaGenerator()
-
     mySQLConnection = MySQLdb.connect(host='localhost', user='root', passwd='')
     mySqlCursor = mySQLConnection.cursor()
     deleteDependotronSQL = "DROP DATABASE dependotron;"
@@ -188,7 +173,8 @@ if __name__ == '__main__':
     except:
         pass
 
-    gen.generateSchema('localhost', 'root', '', 'dependotron')
+    gen = schemaGenerator.SchemaGenerator('localhost', 'root', '', 'dependotron')
+    gen.generateSchema()
     dependotronConnection = MySQLdb.connect(host='localhost', user='root', passwd='', db='dependotron')
     dependotronCursor = dependotronConnection.cursor()
 
