@@ -6,7 +6,10 @@ class PomFetcherFolder:
         self._pom_found_subject = pom_found_subject
 
     def _getPomListFromFolder(self, folder_path, max_items_to_read):
-        pom_list = glob.glob(folder_path +"*.xml")
+        if not folder_path.endswith('/'):
+            folder_path += '/'
+        file_searchpath = folder_path + '*.xml'
+        pom_list = glob.glob(file_searchpath)
         return pom_list[0:max_items_to_read]
 
     def fetch(self):
