@@ -76,31 +76,15 @@ class Database:
         artifactId = self.cursor.fetchall()[0][0]
         return artifactId
 
-    # TODO : Use private get from database and formatter
     def pomAnalysisExists(self, artifactInfo):
-        # This sql will do the query in one go
-        # sql = "SELECT COUNT(*) FROM dependencies WHERE parent_id = (SELECT artifact_id FROM artifacts WHERE artifact_name = '%s' and artifact_version = '%s')"
-        # sql = sql % (artifactInfo.name, artifactInfo.version)
-        pomExists = False
-        getArtifactIdSQL = "SELECT artifact_id FROM artifacts WHERE (artifact_name='%s' AND artifact_version='%s')" % \
-                           (artifactInfo.name, artifactInfo.version)
-        self.cursor.execute(getArtifactIdSQL)
-        if (self.cursor.rowcount == 1):
-            artifactId = self.cursor.fetchall()[0][0]
-            getParentSQL = "SELECT DISTINCT parent_id FROM dependencies WHERE (parent_id='%s')" % \
-                           (artifactId,)
-            self.cursor.execute(getParentSQL)
-            if self.cursor.rowcount == 1:
-                pomExists = True
-        return pomExists
+        numberOfDependenciesSQL = "SELECT COUNT(*) FROM dependencies WHERE parent_id = (SELECT artifact_id FROM artifacts WHERE artifact_name = '%s' and artifact_version = '%s')" % \
+                                  (artifactInfo.name, artifactInfo.version)
+        numberOfDependencies = self._getFromDatabase(numberOfDependenciesSQL)[0][0]
+        return numberOfDependencies > 0
 
     def doesArtifactExist(self, artifactName, artifactVersion=None):
-        if len(self.getArtifactInfo(artifactName, artifactVersion)) != 0:
-            return True
-        else:
-            return False
+        return len(self.getArtifactInfo(artifactName, artifactVersion)) > 0
 
-    # TODO : Use private get from database and formatter
     def getArtifactInfo(self, artifactName, artifactVersion=None):
         if artifactVersion == None:
             existsSQL = "SELECT artifact_name,artifact_version FROM artifacts WHERE (artifact_name='%s')" % \
