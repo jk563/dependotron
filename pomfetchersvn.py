@@ -10,7 +10,7 @@ class PomFetcherSvn:
         self._logger = logger
 
         #TODO configure blacklist?
-        self._blacklist = ["../", "./", "LiveStats/", "src/", "branches/", "tags/", "target/"]
+        self._blacklist = ["../", "./", "LiveStats/", "src/", "target/"]
 
     def fetch(self):
         self.crawl(self._root_path)

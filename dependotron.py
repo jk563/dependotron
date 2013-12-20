@@ -18,7 +18,7 @@ class Main:
 
     def __init__(self, path, svn_or_folder, cert_file):
         self._starting_path = path
-        self._max_items = 50
+        self._max_items = 50000
         self._pom_processor = None
         self._pom_found_subject = None
         self._pom_fetcher = None
