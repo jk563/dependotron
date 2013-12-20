@@ -16,32 +16,62 @@ except ImportError:
 class Visualiser:
     def __init__(self, database):
         self.database = database
+        self.preamble = []
+        self.main = []
+        self.postscript = []
 
-    def plot_graph_for_artifact(self, artifact):
+    def build_graphviz_graph_for_artifact(self, artifact):
         if not self.database.doesArtifactExist(artifact.name, artifact.version):
             raise LookupError("Artifact " + str(artifact) + " is not known")
+        self._plot_preamble()
         self._plot_downstream_dependencies(artifact)
         self._plot_upstream_dependencies(artifact)
+        self._plot_postscript()
+        graphviz_lines = self.preamble + self.main + self.postscript
+        return graphviz_lines
+
+    def _write(self, lines):
+        for line in lines:
+            print line
+
+    def _plot_preamble(self):
+        self.preamble.append("digraph G {")
+
+    def _plot_postscript(self):
+        self.postscript.append("}")
 
     def _plot_downstream_dependencies(self, artifact):
         print "Downstream dependencies for", artifact
         dependencyInfo = self.database.getDownstreamDependencies(artifact)
         (directCount, totalCount) = self._count_dependencies(dependencyInfo.dependencies)
         print "(direct = %d, total = %d)" % (directCount, totalCount)
+        self.preamble.append(self._label_for(artifact))
         for dependency in dependencyInfo.dependencies:
             if dependency.direct_dependency:
-                print self._dependency_between(artifact.name, dependency.name)
+                self.preamble.append(self._label_for(dependency))
+                self.main.append(self._dependency_between(artifact.name, dependency.name))
 
     def _plot_upstream_dependencies(self, artifact):
         print "Upstream dependencies for", artifact
         dependencyInfo = self.database.getUpstreamDependencies(artifact)
+        (directCount, totalCount) = self._count_dependencies(dependencyInfo.dependencies)
+        print "(direct = %d, total = %d)" % (directCount, totalCount)
+        self.preamble.append(self._label_for(artifact))
         for dependency in dependencyInfo.dependencies:
-            print dependency
+            if dependency.direct_dependency:
+                self.preamble.append(self._label_for(dependency))
+                self.main.append(self._dependency_between(dependency.name, artifact.name))
 
     def _dependency_between(self, source, destination):
         sanitised_source = self._sanitise(source)
         sanitised_destination = self._sanitise(destination)
         return "%s -> %s" % (sanitised_source, sanitised_destination)
+
+    def _label_for(self, artifact_info):
+        bits = artifact_info.name.split(":")
+        nice_label = "\\n".join(bits)
+        nice_label += "\\n" + artifact_info.version
+        return "%s [label=\"%s\"];" % (self._sanitise(artifact_info.name), nice_label)
 
     def _sanitise(self, name):
         sanitised_name = name.replace(".", "_")
@@ -113,6 +143,10 @@ if __name__ == "__main__":
         for artifact in artifacts:
             print artifactNameAndVersion
             print artifact
-            visualiser.plot_graph_for_artifact(artifact)
+            output_lines = visualiser.build_graphviz_graph_for_artifact(artifact)
+            output_file = open(".temp/graph.dot", "w")
+            for line in output_lines:
+                print line
+                output_file.write(line + "\n")
     else:
         print "Artifact (%s) not known." % (artifactNameAndVersion)
