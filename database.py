@@ -165,10 +165,10 @@ class Database:
 
 
 class TupleToArtifactInfoFormatter:
-    def format(self,tupleToFormat):
-        if len(tuple) is 3:
+    def format(self, tupleToFormat):
+        if len(tupleToFormat) is 3:
             return artifactdependencyinfo.ArtifactInfo(tupleToFormat[0],tupleToFormat[1], tupleToFormat[2])
-        elif len(tuple) is 2:
+        elif len(tupleToFormat) is 2:
             return artifactdependencyinfo.ArtifactInfo(tupleToFormat[0],tupleToFormat[1])
         else:
             raise FormatterException

@@ -3,6 +3,8 @@ Depend-o-tron graphviz plotter
 """
 import argparse
 import unittest
+import pprint
+
 from artifactdependencyinfo import ArtifactInfo
 
 try:
@@ -16,8 +18,22 @@ class Visualiser:
         self.database = database
 
     def plot_graph_for_artifact(self, artifact):
-        if not self.database.doesArtifactExist(artifact):
-            raise LookupError("Artifact " + artifact + " is not known")
+        if not self.database.doesArtifactExist(artifact.name, artifact.version):
+            raise LookupError("Artifact " + str(artifact) + " is not known")
+        self._plot_downstream_dependencies(artifact)
+        self._plot_upstream_dependencies(artifact)
+
+    def _plot_downstream_dependencies(self, artifact):
+        print "Downstream dependencies for", artifact
+        dependencyInfo = self.database.getDownstreamDependencies(artifact)
+        for dependency in dependencyInfo.dependencies:
+            print dependency
+
+    def _plot_upstream_dependencies(self, artifact):
+        print "Upstream dependencies for", artifact
+        dependencyInfo = self.database.getUpstreamDependencies(artifact)
+        for dependency in dependencyInfo.dependencies:
+            print dependency
 
 
 ##########################################################################################
@@ -57,8 +73,11 @@ class VisualiserTest(unittest.TestCase):
 # If run as a program then handle parameters and run
 if __name__ == "__main__":
     parser = argparse.ArgumentParser("This is the graphviz plotting tool for Depend-O-Tron")
-    parser.add_argument("artifact",
-                        help="The artifact for which to show relationships")
+    parser.add_argument("artifactName",
+                        help="The name of the artifact for which to show relationships")
+    parser.add_argument("--artifactVersion",
+                        default="",
+                        help="The version of the artifact for which to show relationships")
     parser.add_argument("--steps",
                         default=1,
                         help="Maximum number of steps to show from the artifact")
@@ -66,9 +85,13 @@ if __name__ == "__main__":
     database = Database()
     artifactInfo = None
 
-    if args.artifact and database.doesArtifactExist(args.artifact):
-        # visualiser = Visualiser(Database())
-        # visualiser.plot_graph_for_artifact(args.artifact)
-        artifacts = database.getArtifactInfo(args.artifact)
+    artifactNameAndVersion = args.artifactName + ":" + args.artifactVersion
+    if args.artifactName and database.doesArtifactExist(args.artifactName):
+        visualiser = Visualiser(Database())
+        artifacts = database.getArtifactInfo(args.artifactName, args.artifactVersion)
+        for artifact in artifacts:
+            print artifactNameAndVersion
+            print artifact
+            visualiser.plot_graph_for_artifact(artifact)
     else:
-        print "Artifact (%s) not known." % (args.artifact)
+        print "Artifact (%s) not known." % (artifactNameAndVersion)
