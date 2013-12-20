@@ -10,18 +10,19 @@ class PomFetcherSvn:
         self._logger = logger
 
         #TODO configure blacklist?
-        self._blacklist = ["../", "./", "LiveStats/", "src/", "branches/", "tags/", ".svn/"]
+        self._blacklist = ["../", "./", "LiveStats/", "src/", "branches/", "tags/", "target/"]
 
     def fetch(self):
         self.crawl(self._root_path)
         self._log("FOUND %i pom.xml files" % (self._found_items))
-
-    def crawl(self, uri):
-        self._log('crawling: ' + uri)
         if self._found_items >= self._max_items:
             self._log('reached max number of poms')
             return
 
+    def crawl(self, uri):
+        if self._found_items >= self._max_items:
+            return
+        self._log('crawling: ' + uri)
 
         try:
             if self._pom_exists(uri):
@@ -64,7 +65,7 @@ class PomFetcherSvn:
 
         for found_sub_directory in foundSubdirectories:
             subdir = found_sub_directory.group(0)[6:-2]
-            if not subdir in self._blacklist:
+            if (not subdir.startswith('.')) and (subdir not in self._blacklist):
                 subDirectories.append(uri + subdir)
         return subDirectories
 
