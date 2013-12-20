@@ -26,14 +26,35 @@ class Visualiser:
     def _plot_downstream_dependencies(self, artifact):
         print "Downstream dependencies for", artifact
         dependencyInfo = self.database.getDownstreamDependencies(artifact)
+        (directCount, totalCount) = self._count_dependencies(dependencyInfo.dependencies)
+        print "(direct = %d, total = %d)" % (directCount, totalCount)
         for dependency in dependencyInfo.dependencies:
-            print dependency
+            if dependency.direct_dependency:
+                print self._dependency_between(artifact.name, dependency.name)
 
     def _plot_upstream_dependencies(self, artifact):
         print "Upstream dependencies for", artifact
         dependencyInfo = self.database.getUpstreamDependencies(artifact)
         for dependency in dependencyInfo.dependencies:
             print dependency
+
+    def _dependency_between(self, source, destination):
+        sanitised_source = self._sanitise(source)
+        sanitised_destination = self._sanitise(destination)
+        return "%s -> %s" % (sanitised_source, sanitised_destination)
+
+    def _sanitise(self, name):
+        sanitised_name = name.replace(".", "_")
+        sanitised_name = sanitised_name.replace(":", "_")
+        sanitised_name = sanitised_name.replace("-", "_")
+        return sanitised_name
+
+    def _count_dependencies(self, dependencies):
+        direct = 0
+        for dependency in dependencies:
+            if dependency.direct_dependency:
+                direct += 1
+        return (direct, len(dependencies))
 
 
 ##########################################################################################
