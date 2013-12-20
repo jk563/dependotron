@@ -33,7 +33,7 @@ class PomFetcherSvn:
             for subFolder in subFolders:
                 self.crawl(subFolder)
         except Exception, e:
-            print('exception' + e)
+            print('exception', e)
         return
 
     def _pom_exists(self, uri):
