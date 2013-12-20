@@ -62,7 +62,7 @@ class PomAnalyser:
         """
         (indent_string, package_string) = self._split_tree_line_into_indent_and_package(tree_line)
         line_elements = package_string.split(":")
-        depth = indent_string.count("+") + indent_string.count("|")
+        depth = indent_string.count("+") + indent_string.count("|") + indent_string.count("\\")
         artifact_info_and_depth = (ArtifactInfo(":".join(line_elements[0:2]), line_elements[3]), depth)
         return artifact_info_and_depth
 
@@ -100,6 +100,10 @@ class PomAnalyserTest(unittest.TestCase):
         (artifact_info, level) = self.pomAnalyser._parse_tree_line("+- bbc.tvp.commons:tvp-commons-web:jar:2.1.0:compile")
         self.assertEqual(artifact_info, ArtifactInfo("bbc.tvp.commons:tvp-commons-web", "2.1.0"))
         self.assertEqual(level, 1)
+
+        (artifact_info, level) = self.pomAnalyser._parse_tree_line("|  \- bbc.tvp.commons:tvp-commons-web:jar:2.1.0:compile")
+        self.assertEqual(artifact_info, ArtifactInfo("bbc.tvp.commons:tvp-commons-web", "2.1.0"))
+        self.assertEqual(level, 2)
 
         (artifact_info, level) = self.pomAnalyser._parse_tree_line("|  |  +- columba:ristretto-smtp:jar:1.0:compile")
         self.assertEqual(artifact_info, ArtifactInfo("columba:ristretto-smtp", "1.0"))

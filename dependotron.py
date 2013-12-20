@@ -44,6 +44,7 @@ class Main:
 
         pom_analyser = PomAnalyser()
         database = Database()
+        database.configure()
 
         self._pom_processor = PomProcessor(pom_analyser, database, logger)
 
