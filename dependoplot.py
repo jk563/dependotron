@@ -59,7 +59,7 @@ class Visualiser:
         for dependency in dependencyInfo.dependencies:
             if dependency.direct_dependency:
                 self.preamble.append(self._label_for(dependency))
-                self.main.append(self._dependency_between(dependency.name, artifact.name))
+                self.main.append(self._dependency_between(dependency.name, artifact.name)) # TODO I think this needs the version adding
 
     def _dependency_between(self, source, destination):
         sanitised_source = self._sanitise(source)
