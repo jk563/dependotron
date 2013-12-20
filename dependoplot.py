@@ -1,9 +1,8 @@
 """
 Depend-o-tron graphviz plotter
 """
-import argparse
 import unittest
-import pprint
+import optparse
 
 from artifactdependencyinfo import ArtifactInfo
 
@@ -123,23 +122,27 @@ class VisualiserTest(unittest.TestCase):
 
 # If run as a program then handle parameters and run
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser("This is the graphviz plotting tool for Depend-O-Tron")
-    parser.add_argument("artifactName",
+    parser = optparse.OptionParser()
+    # argparse.ArgumentParser("This is the graphviz plotting tool for Depend-O-Tron")
+    parser.add_option("--artifactName",
                         help="The name of the artifact for which to show relationships")
-    parser.add_argument("--artifactVersion",
+    parser.add_option("--artifactVersion",
                         default="",
                         help="The version of the artifact for which to show relationships")
-    parser.add_argument("--steps",
+    parser.add_option("--steps",
                         default=1,
                         help="Maximum number of steps to show from the artifact")
-    args = parser.parse_args()
+    (options, args) = parser.parse_args()
+    artifactName = options.artifactName
+    artifactVersion = options.artifactVersion
+
     database = Database()
     artifactInfo = None
 
-    artifactNameAndVersion = args.artifactName + ":" + args.artifactVersion
-    if args.artifactName and database.doesArtifactExist(args.artifactName):
+    artifactNameAndVersion = artifactName + ":" + artifactVersion
+    if artifactName and database.doesArtifactExist(artifactName):
         visualiser = Visualiser(Database())
-        artifacts = database.getArtifactInfo(args.artifactName, args.artifactVersion)
+        artifacts = database.getArtifactInfo(artifactName, artifactVersion)
         for artifact in artifacts:
             print artifactNameAndVersion
             print artifact
