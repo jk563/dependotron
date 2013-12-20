@@ -24,7 +24,6 @@ class Database:
         generator = schemaGenerator.SchemaGenerator(self.host, self.user, self.password, self.database)
         generator.generateSchema()
 
-
     def add(self, artifactDependencyInfo):
         """
         Add new information to the database. [dependencyEntry] might be a tuple of:
@@ -48,7 +47,6 @@ class Database:
             self.connection.rollback()
             raise
 
-    # TODO : Use private get from database and formatter
     def _addArtifactIfDoesNotExist(self, artifactInfo):
         try:
             addArtifactIdSQL = "INSERT INTO artifacts (artifact_name,artifact_version) VALUES ('%s','%s');" % \
@@ -68,13 +66,10 @@ class Database:
         except:
             raise
 
-    # TODO : Use private get from database and formatter
     def _getArtifactId(self, artifactInfo):
         getArtifactIdSQL = "SELECT artifact_id FROM artifacts WHERE (artifact_name='%s' AND artifact_version='%s')" % \
                            (artifactInfo.name, artifactInfo.version)
-        self.cursor.execute(getArtifactIdSQL)
-        artifactId = self.cursor.fetchall()[0][0]
-        return artifactId
+        return self._getFromDatabase(getArtifactIdSQL)[0][0]
 
     def pomAnalysisExists(self, artifactInfo):
         numberOfDependenciesSQL = "SELECT COUNT(*) FROM dependencies WHERE parent_id = (SELECT artifact_id FROM artifacts WHERE artifact_name = '%s' and artifact_version = '%s')" % \
@@ -92,8 +87,7 @@ class Database:
         else:
             existsSQL = "SELECT artifact_name,artifact_version FROM artifacts WHERE (artifact_name='%s' AND artifact_version='%s')" % \
                         (artifactName, artifactVersion)
-        artifacts = self._getFromDatabase(existsSQL,self.MySQLResultsToListOfArtifactInfo())
-        return artifacts
+        return self._getFromDatabase(existsSQL,self.MySQLResultsToListOfArtifactInfo())
 
     def getDownstreamDependencies(self, artifactInfo):
         if self.doesArtifactExist(artifactInfo.name, artifactInfo.version) == False:
