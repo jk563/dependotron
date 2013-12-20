@@ -108,10 +108,7 @@ class Database:
         else:
             existsSQL = "SELECT artifact_name,artifact_version FROM artifacts WHERE (artifact_name='%s' AND artifact_version='%s')" % \
                         (artifactName, artifactVersion)
-        self.cursor.execute(existsSQL)
-        artifacts = []
-        for artifact in self.cursor.fetchall():
-            artifacts.append(artifactdependencyinfo.ArtifactInfo(artifact[0],artifact[1]))
+        artifacts = self._getFromDatabase(existsSQL,self.MySQLResultsToListOfArtifactInfo())
         return artifacts
 
     def getDownstreamDependencies(self, artifactInfo):
