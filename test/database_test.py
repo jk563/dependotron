@@ -10,20 +10,18 @@ class DatabaseTest(unittest.TestCase):
         self.database.cursor.close()
         self.database.connection.close()
         self.database.database = 'dependotron-test'
-        mySQLConnection = MySQLdb.connect(host='localhost', user='root', passwd='')
-        mySqlCursor = mySQLConnection.cursor()
-        createDatabaseQuery = "CREATE DATABASE %s;" % (self.database.database)
-        mySqlCursor.execute(createDatabaseQuery)
-        mySqlCursor.close()
-        mySQLConnection.close()
+        self._databaseManipulation('CREATE')
         self.database.connection = MySQLdb.connect(host='%s', user='%s', passwd='', database='%s') \
                                                     % ('localhost','root', self.database.database)
         self.database.cursor = self.database.connection.cursor()
 
     def tearDown(self):
+        self._databaseManipulation('DROP')
+
+    def _databaseManipulation(self, command):
         mySQLConnection = MySQLdb.connect(host='localhost', user='root', passwd='')
         mySqlCursor = mySQLConnection.cursor()
-        deleteDatabaseQuery = "DROP DATABASE %s;" % (self.database.database)
+        deleteDatabaseQuery = "%s DATABASE %s;" % (command, self.database.database)
         mySqlCursor.execute(deleteDatabaseQuery)
         mySqlCursor.close()
         mySQLConnection.close()
