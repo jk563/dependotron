@@ -16,7 +16,7 @@ class Database:
         self.connection.close()
         self.cursor.close()
 
-    def configure(self):
+    def initialiseSchema(self):
         """
         Tests if the database is there, builds it if not. Maybe throws exception if wrong schema?
         Alternatively this could be done in the constructor
