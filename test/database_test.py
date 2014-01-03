@@ -26,8 +26,8 @@ class DatabaseTest(unittest.TestCase):
         mySqlCursor.close()
         mySQLConnection.close()
 
-    def add_adds_dependencies_to_database(self):
-        pass
+    def test_add_adds_dependencies_to_database(self):
+        assert(True)
 
 if __name__ == '__main__':
     unittest.main()
