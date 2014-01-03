@@ -1,3 +1,5 @@
+import MySQLdb
+
 class DatabaseInitialiser:
     def __init__(self, host, user, passwd):
         self.host = host
@@ -5,4 +7,4 @@ class DatabaseInitialiser:
         self.passwd = passwd
 
     def connect_to_database(self):
-        pass
+        self.connection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.passwd)
