@@ -11,6 +11,6 @@ class DatabaseInitialiser:
 
     def initialise_database(self, database):
         cursor = self.connection.cursor()
-        create_database_sql = 'CREATE DATABASE IF NOT EXISTS %s;' % (database)
+        create_database_sql = 'CREATE DATABASE %s;' % (database)
         cursor.execute(create_database_sql)
         self.connection.commit()

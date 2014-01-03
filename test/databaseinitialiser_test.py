@@ -11,7 +11,7 @@ class DatabaseInitialiserTest(unittest.TestCase):
         self.database_name = 'database_initialiser_test'
 
     def tearDown(self):
-        if self._does_database_exist(self.database_name):
+        if self._does_database_exist():
             connection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.passwd)
             cursor = connection.cursor()
             remove_database_query = 'DROP DATABASE %s' % self.database_name
@@ -21,16 +21,16 @@ class DatabaseInitialiserTest(unittest.TestCase):
         self.database_initialiser.connect_to_database()
         self.assertTrue(self.database_initialiser.connection)
 
-    def test_database_created_if_it_does_not_exist(self):
+    def test_database_created(self):
         self.database_initialiser.connect_to_database()
         self.database_initialiser.initialise_database(self.database_name)
-        self.assertTrue(self._does_database_exist(self.database_name), 'Database does not exist.')
+        self.assertTrue(self._does_database_exist(), 'Database does not exist.')
 
-    def _does_database_exist(self, database_name):
+    def _does_database_exist(self):
         connection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.passwd)
         cursor = connection.cursor()
         database_exists_query = "SELECT COUNT(SCHEMA_NAME) FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME='%s'" \
-                                % (database_name)
+                                % (self.database_name)
         cursor.execute(database_exists_query)
         number_of_results = cursor.fetchone()
         if number_of_results[0]== 1:
