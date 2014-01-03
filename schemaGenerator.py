@@ -3,12 +3,6 @@ import MySQLdb
 
 class SchemaGenerator:
     def __init__(self,host,user,password,database):
-        self.database = database
-        self.dbConnection = MySQLdb.connect(host=host, user=user, passwd=password)
-        self.dbCursor = self.dbConnection.cursor()
-        self.createDependotronDatabaseIfNotExists()
-        self.dbCursor.close()
-        self.dbConnection.close()
         self.dependotronConnection = MySQLdb.connect(host=host, user=user, passwd=password, db=database)
         self.dependotronCursor = self.dependotronConnection.cursor()
 
@@ -28,11 +22,6 @@ class SchemaGenerator:
                         (parent_id,descendant_id));"""
         self.dependotronCursor.execute(artifactsSQL)
         self.dependotronCursor.execute(dependenciesSQL)
-
-    def createDependotronDatabaseIfNotExists(self):
-        createDependotronSQL = "CREATE DATABASE IF NOT EXISTS " + self.database + ";"
-        self.dbCursor.execute(createDependotronSQL)
-        self.dbConnection.commit()
 
 
 if __name__ == '__main__':
