@@ -16,9 +16,10 @@ class DatabaseInitialiserTest(unittest.TestCase):
             cursor = connection.cursor()
             remove_database_query = 'DROP DATABASE %s' % self.database_name
             cursor.execute(remove_database_query)
+            cursor.close()
+            connection.close()
 
     def test_database_created(self):
-        self.database_initialiser.connect_to_database()
         self.database_initialiser.initialise_database(self.database_name)
         self.assertTrue(self._does_database_exist(), 'Database does not exist.')
 
@@ -29,6 +30,8 @@ class DatabaseInitialiserTest(unittest.TestCase):
                                 % (self.database_name)
         cursor.execute(database_exists_query)
         number_of_results = cursor.fetchone()
+        cursor.close()
+        connection.close()
         if number_of_results[0]== 1:
             return True
         else:
