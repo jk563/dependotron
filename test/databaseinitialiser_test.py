@@ -17,10 +17,6 @@ class DatabaseInitialiserTest(unittest.TestCase):
             remove_database_query = 'DROP DATABASE %s' % self.database_name
             cursor.execute(remove_database_query)
 
-    def test_connection_can_be_made(self):
-        self.database_initialiser.connect_to_database()
-        self.assertTrue(self.database_initialiser.connection)
-
     def test_database_created(self):
         self.database_initialiser.connect_to_database()
         self.database_initialiser.initialise_database(self.database_name)
