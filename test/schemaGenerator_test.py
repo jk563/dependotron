@@ -32,6 +32,7 @@ class SchemaGeneratorTest(unittest.TestCase):
         number_of_tables = self._get_number_of_results(number_of_tables_query)
         self.assertGreater(number_of_tables, 0, 'No tables created.')
 
+    # Duplicate Code
     def _get_number_of_results(self, query):
         connection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.passwd)
         cursor = connection.cursor()
