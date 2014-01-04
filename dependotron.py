@@ -3,6 +3,7 @@ Depend-o-tron
 Tool for finding dependencies of maven artifacts, using Python, SVN, Maven, MySQL, graphviz...
 """
 from optparse import OptionParser
+import databaseinitialiser
 from logger import Logger
 from database import Database
 from pomProcessor import PomProcessor
@@ -44,6 +45,8 @@ class Main:
 
         pom_analyser = PomAnalyser()
         database = Database()
+        database_initialiser = databaseinitialiser.DatabaseInitialiser('localhost', 'root', '')
+        database_initialiser.initialise_database('dependotron')
         database.initialiseSchema()
 
         self._pom_processor = PomProcessor(pom_analyser, database, logger)
