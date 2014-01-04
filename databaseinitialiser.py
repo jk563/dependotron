@@ -9,7 +9,7 @@ class DatabaseInitialiser:
     def initialise_database(self, database):
         connection = MySQLdb.connect(host=self.host, user=self.user, passwd=self.passwd)
         cursor = connection.cursor()
-        create_database_sql = 'CREATE DATABASE %s;' % (database)
+        create_database_sql = 'CREATE DATABASE IF NOT EXISTS %s;' % (database)
         cursor.execute(create_database_sql)
         cursor.close()
         connection.close()
